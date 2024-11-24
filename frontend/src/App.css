@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.form {
+  background: linear-gradient(135deg, #1cb5e0 0%, #000851 100%);
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+.modal {
+  padding: 5% 10%;
+}
