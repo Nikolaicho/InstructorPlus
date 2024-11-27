@@ -1,8 +1,8 @@
 import express from "express";
-import adminController from "../controllers/admin.controller";
+import superAdminController from "../controllers/superAdmin.controller";
 
 const router = express.Router();
 
-router.post("/createCorporation",adminController.createCorporation)
-
+router.post("/createCorporation",superAdminController.createCorporation)
+router.post("/createInstructor",superAdminController.createInstructor)
 export default router;

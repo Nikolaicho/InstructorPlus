@@ -1,13 +1,13 @@
 import express from "express";
-import adminController from "../controllers/admin.controller";
+import documentsController from "../controllers/documents.controller";
 
 const router = express.Router();
  
-router.post("/createNewDocument",adminController.createNewDocument);
-router.get("/getAllDocuments",adminController.getAllDocuments)
-router.get("/getAllInstructors",adminController.getAllInstructors)
-router.post("/addCar",adminController.addCar)
-router.get("/getAllCars",adminController.getAllCars)
-router.post("/deleteDocument",adminController.deleteDocuments)
+router.post("/createNewDocument",documentsController.createNewDocument);
+router.get("/getAllDocuments",documentsController.getAllDocuments)
+router.get("/getAllInstructors",documentsController.getAllInstructors)
+router.post("/addCar",documentsController.addCar)
+router.get("/getAllCars",documentsController.getAllCars)
+router.post("/deleteDocument",documentsController.deleteDocuments)
 
 export default router;
