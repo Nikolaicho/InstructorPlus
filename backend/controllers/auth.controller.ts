@@ -10,6 +10,7 @@ import jwt from "jsonwebtoken"
 
 const handleRegister = async (req:express.Request,res:express.Response) => {
     const {firstName,surname,lastName,telephone,email,password} = req.body
+
     if((await User.findOne({email: req.body.email})) !== null) {
        res.status(StatusCodes.CONFLICT).json({message: "This user already exists"});
        return;
@@ -31,10 +32,11 @@ const handleRegister = async (req:express.Request,res:express.Response) => {
     const tokens = generateTokens(req.body.email)
     cookies.set("access",tokens[0])
     cookies.set("refresh",tokens[1])
-    res.send("ok");
+    res.status(StatusCodes.OK).send("User registered successfully");
 };
 
 const handleLogIn = async (req:express.Request,res:express.Response)=>{
+
     if(await User.findOne({email:req.body.email}) !== null){
         const cookies = new Cookies(req,res,{secure:true})
         const tokens = generateTokens(req.body.email)
@@ -50,7 +52,6 @@ const handleLogIn = async (req:express.Request,res:express.Response)=>{
 const isAdmin = async (req:express.Request,res:express.Response)=>{
     const token = getCookie("token",req,res)
     let payload = jwt.decode(token)
-     // TODO: проверка дали ще направи проблем при повече от 1 нещо в токена
     
     let response = await User.findOne({email:payload})
     if(response && response.role == "admin"){
