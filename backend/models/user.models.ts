@@ -12,7 +12,7 @@ export interface userType {
   dates: [{timestamp: number, name: string,finalDate:Date}]
 }
 
-const userSchema = new Schema<userType>({
+const userSchema = new Schema({
   firstName:{
     type:String,
     required:true,
@@ -46,7 +46,11 @@ const userSchema = new Schema<userType>({
     startDate : Date,
     name: String,
     finalDate:Date, 
-  }]
+  }],
+  organization:{
+    type: Schema.Types.ObjectId, ref: 'Corporation',
+    default:null
+  }
 });
 
 
