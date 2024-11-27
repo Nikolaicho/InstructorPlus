@@ -9,11 +9,7 @@ import { parseDate } from "@internationalized/date";
 import useClassesArray from "../hooks/Admin/useClassesArray";
 import useTodayClasses from "../hooks/Admin/useTodayClasses";
 import useSearchCandidate from "../hooks/Admin/useSearchCandidates";
-
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
-import { Height, Padding } from "@mui/icons-material";
+import { Candidate } from "../interfaces/candidate.interface";
 
 function Admin() {
   const { isAdmin } = useIsAdmin();
@@ -65,19 +61,12 @@ function Admin() {
     setClasses(classes);
   },[refresh])
 
-  interface Candidate {
-    firstName:string,
-    surname:string,
-    lastName:string,
-    _id:string,
-  }
+  
   return (
     <>
       {(
         <>
           <NavBar />
-          
-          
           <div className="text-red-600">{error}</div>
           <div className="container">
             <div style={{padding:"100px"}}>
@@ -94,21 +83,6 @@ function Admin() {
               />
             </div>
           </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
           <div >
             
@@ -213,7 +187,7 @@ function Admin() {
 
                   {isCandidatesLoaded ? 
                     <div className="p-4 overflow-auto h-20">
-                    {candidates.map((candidate:Candidate,key:number)=>(
+                    {candidates?.map((candidate:Candidate,key:number)=>(
                       <div className="flex">
                       <div>{candidate.firstName} {candidate.surname} {candidate.lastName}</div>
                       <div className = "ml-4 border border-black" onClick={()=>{

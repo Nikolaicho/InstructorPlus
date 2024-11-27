@@ -6,16 +6,8 @@ import useGetAllInstructors from "../hooks/Documents/useGetAllInstructors"
 import useGetAllDocuments from "../hooks/Documents/useGetAllDocuments"
 import useGetAllCars from "../hooks/Documents/useGetAllCars";
 import useDeleteDocument from "../hooks/Documents/useDeleteDocument";
+import {Car,Instructor} from "../interfaces/documents.interface"
 
-interface Instructor {
-  id:string,
-  name:string,
-}
-interface Car{
-  _id:string,
-  brand:string,
-  model:string,
-}
 
 function Documents() {
 
@@ -92,7 +84,7 @@ function Documents() {
           <select onChange={(e)=>{
             setEntityId(e.target.value)
           }}>
-            {instructors.map((instructor:Instructor,key:number)=>(
+            {instructors?.map((instructor:Instructor,key:number)=>(
               <option value={instructor.id} >{instructor.name}</option>
             ))}
           </select>
@@ -105,7 +97,7 @@ function Documents() {
           <select onChange={(e)=>{
            setEntityId(e.target.value)
           }}>
-            {cars.map((car:Car,key:number)=>(
+            {cars?.map((car:Car,key:number)=>(
               <option value={car._id} >{car.brand} {car.model} {car._id}</option>
             ))}
           </select>

@@ -1,13 +1,14 @@
 import { useEffect,useState } from "react"
-
+import { Document } from "../../interfaces/documents.interface";
 const useGetAllDocuments = () =>{
     const [isDocumentsLoaded,setIsDocumentsLoaded] = useState<boolean>()
-    const [documents,setDocuments] = useState<any>();
+    const [documents,setDocuments] = useState<Document[]>();
     useEffect(()=>{
         async function getAllDocuments(){
         const response = await fetch("http://localhost:8000/getAllDocuments",{
             method:"GET"
         })
+        
         setDocuments(await response.json())
         setIsDocumentsLoaded(true)
     }

@@ -5,6 +5,8 @@ import useMakeTransaction from "../hooks/Profile/useMakeTransaction";
 import { useState } from "react";
 import useSignNewExam from "../hooks/Profile/useSignNewExam";
 import useGetAllExams from "../hooks/Profile/useGetAllExams"
+import { Transaction } from "../interfaces/profile.interface";
+import useDeleteTransaction from "../hooks/Profile/useDeleteTransaction";
 
 function Profile(){
     const {id} = useParams() 
@@ -13,7 +15,8 @@ function Profile(){
 
     const {makeTransaction} = useMakeTransaction();
     const {signNewExam} = useSignNewExam();
-    useGetAllExams(id)
+    useGetAllExams(id);
+    const {deleteTransaction} = useDeleteTransaction();
 
     const [sum,setSum] = useState(0)
     const [typeOfExam,setTypeOfExam] = useState<string>("theoretical")
@@ -24,11 +27,16 @@ function Profile(){
     <NavBar/>
     
     {isLoaded ? <div>
-        {userInfo.transactions.map((transaction:any,key:number)=>(
+        {userInfo?.transactions.map((transaction:any,key:number)=>(
+            <div>
             <div className="mb-4">номер на транзакциятa:{transaction._id} <br/> {transaction.sum} лева <br/> дата:{transaction.date}</div>
+            <button onClick={()=>{
+                deleteTransaction(transaction._id)
+            }}>Изтрий</button>
+            </div>
         ))}
         <div className="mb-4">
-            {userInfo.firstName} {userInfo.lastName}
+            {userInfo?.firstName} {userInfo?.lastName}
         </div>
         
     </div>:<></>}

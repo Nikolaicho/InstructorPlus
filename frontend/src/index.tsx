@@ -11,6 +11,7 @@ import Profile from "./components/Profile"
 import Registry from "./components/Registry";
 import SuperAdmin from "./components/superAdmin";
 
+
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );

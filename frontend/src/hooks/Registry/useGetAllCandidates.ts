@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react"
-interface candidateInfo{
-    firstName:string,
-    surname:string,
-    lastName:string,
-    _id:string,
-  }
+import { Candidate } from "../../interfaces/candidate.interface"
 function useGetAllCandidates(){
-    const [userInfo,setUserInfo] = useState<candidateInfo[]>()
+    const [userInfo,setUserInfo] = useState<Candidate[]>()
     const [isInfoLoaded,setIsInfoLoaded] = useState<boolean>(false)
     async function getAllCandidates(){
-        let response = await fetch("http://localhost:8000/getAllAvailableCandidates",{
+        
+        let response = await fetch(`http://localhost:8000/getAllAvailableCandidates`,{
             method:"GET"
         })
         setUserInfo(await (response.json()))

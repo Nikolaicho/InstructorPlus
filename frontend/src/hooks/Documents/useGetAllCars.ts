@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-
+import { Car } from "../../interfaces/documents.interface"
 const useGetAllCars = () =>{
-    const [cars,setCars] = useState<any>()
+    const [cars,setCars] = useState<Car[]>()
 
     const getAllCars = async () =>{
         const response = await fetch("http://localhost:8000/getAllCars",{
