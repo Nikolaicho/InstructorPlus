@@ -4,6 +4,10 @@ import User, { userType } from "../models/user.models"
 import {getCookie} from "../utils/auth.utils"
 import jwt from "jsonwebtoken";
 import { StatusCodes } from "http-status-codes";
+import parseQueryParams from "../utils/query.utils";
+import mongoose from "mongoose";
+import { ClassDates } from "../interfaces/classDates.interface";
+import classesUtils from "../utils/classes.utils"
 
 const getCandidates = async (req:express.Request,res:express.Response) =>{
     //extracts all of the information that is needed for the candidates to display properly
@@ -21,26 +25,25 @@ const getCandidates = async (req:express.Request,res:express.Response) =>{
     res.send(info); 
 };
 
-interface signInReq extends express.Request {
-    user: userType;
-}
+
   
-  
-const isSignInReq = (req: express.Request): req is signInReq => {
-    return (req as any)?.user !== null;
-}
+
   
 const signNewClass = async (req: express.Request, res: express.Response) => {
-    if(!isSignInReq(req)){
-        res.status(422)
-    }
-
+   
+    //id - userId 
     const {id,date,hours,minutes,longHour} = req.body;
-    
+
     let token = getCookie("access",req,res)
-    let {payload} = jwt.decode(token);
+    let decodedToken = jwt.decode(token);
     
-    let emailInstructor = payload 
+    let idInstructor = decodedToken.id
+
+    //checks if the date for the lesson is valid
+    if(await classesUtils.checkIfDateIsValid(idInstructor,id,date,hours,minutes,longHour) == false){
+      res.send("Невалиден час").status(StatusCodes.CONFLICT)
+      return;
+    }
     
     //getting the time for the start of the lesson
     let addingHoursAndMinutes = new Date(date).getTime() + hours*60*60*1000 + minutes*60*1000 
@@ -49,19 +52,16 @@ const signNewClass = async (req: express.Request, res: express.Response) => {
     //adding the duration of the lesson (either 50 mins or 100 mins)
     addingHoursAndMinutes += parseInt(longHour)*60*1000;
     let finalDate = new Date(addingHoursAndMinutes)
-    
 
     //TODO има разлика във времевите зони сървър-utc фронтенд- utc+2
-    //TODO сложи ид в пайлоуда
-
 
     //pushing the start of the lesson and the end of it to the instructor and user in the database
     await User.findOneAndUpdate({_id:id},  
       { 
-      $push: { dates: { startDate: startDate, name: emailInstructor,finalDate:finalDate} }  
+      $push: { dates: { startDate: startDate, name: idInstructor,finalDate:finalDate} }  
       });
     
-    await User.findOneAndUpdate({email:emailInstructor},  
+    await User.findOneAndUpdate({_id:idInstructor},  
       { 
       $push: { dates: { startDate: startDate, name: id,finalDate:finalDate} }  
       });
@@ -71,50 +71,14 @@ const signNewClass = async (req: express.Request, res: express.Response) => {
 }
 
 const getAllClasses = async (req:express.Request,res:express.Response) =>{
-  
     let token = getCookie("access",req,res);
     
-    let {payload} = jwt.decode(token)
-    
-    //getting searched date in date object
-    let date = new Date(req.body.searchedDate);
-    
-    //getting the dates I search for classes
-    //for example the searched date is 26/11/2024
-    //i am getting the time between 26/11/2024 00:00 and 27/11/2024 00:00
-    let firstDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    let lastDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(),date.getDate()+1));
-  
-    //pipeline that gets me only dates field from the user in the DB
-    const classPipeline = [
-      {
-        $unwind: "$dates"
-      },
-      {
-        $match: {
-          "dates.date": {
-            $gte: firstDay,  
-            $lte: lastDay    
-          },
-          email:payload
-        }
-      },
-      {
-        $project: {
-          _id: 0,            
-          dates: 1           
-        }
-      }
-    ];
-   
-    
-    let dates = await User.aggregate(classPipeline)
-    //TODO
-    //.map() removes dates:{} 
-    const mappedDates =  dates.map(item => item.dates); 
-    
-    res.send(JSON.stringify(mappedDates))
+    let {id} = jwt.decode(token)
+
+    res.send(JSON.stringify(await classesUtils.getAllClassesAggregator(req.body.searchedDate,id)))
 }
+
+
 
 const searchCandidates = async(req:express.Request,res:express.Response) =>{
     const {name} = req.body
@@ -155,4 +119,17 @@ const searchCandidates = async(req:express.Request,res:express.Response) =>{
     res.send(formatedCandidates)
 }
 
-export default {getCandidates,signNewClass,getAllClasses,searchCandidates}
+const timeLeft = async(req:express.Request,res:express.Response) => {
+  let fullWorkDay = 500 * 60 * 1000 //500 minutes in miliseconds (10 learning hours)
+  let  params = parseQueryParams(req.originalUrl)
+  let searchedDate = parseInt(params.searchedDate)
+  let cookie = getCookie("access",req,res)
+  let id = jwt.decode(cookie).id
+  let dates:ClassDates[] = await classesUtils.getAllClassesAggregator(searchedDate,id)
+  dates.map((date)=>{
+    fullWorkDay -= date.finalDate.getTime()-date.startDate.getTime()
+  })
+  res.send({workTimeLeft:fullWorkDay})
+}
+
+export default {getCandidates,signNewClass,getAllClasses,searchCandidates,timeLeft}

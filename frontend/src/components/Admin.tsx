@@ -10,10 +10,14 @@ import useClassesArray from "../hooks/Admin/useClassesArray";
 import useTodayClasses from "../hooks/Admin/useTodayClasses";
 import useSearchCandidate from "../hooks/Admin/useSearchCandidates";
 import { Candidate } from "../interfaces/candidate.interface";
+import useGetTimeLeft from "../hooks/Admin/useGetTimeLeft"; 
 
 function Admin() {
   const { isAdmin } = useIsAdmin();
   const { availableCandidates } = useCandidates();
+  
+  //импорт за функциите които следят останалото работно време
+  const {getTimeLeft,workingTime} = useGetTimeLeft();
 
   //дава селектираната дата и функция за записване на час
   const { setSelectedDate, selectedDate, signNewClass } = useClass();
@@ -26,10 +30,6 @@ function Admin() {
 
   // отговаря за визуализирането на часовете и менюто за курсисти
   const {classes,formatDates,setClasses} = useClassesArray();
-
-  //отговаря за отварянето на менюто с кандидати и селектирането на клас
-  const [selectedClass, setSelectedClass] = useState(0);
-  const [isMenuVisible, setIsMenuVisible] = useState<boolean>(false);
 
   const [refresh, setRefresh] = useState(0);
   const [error, setError] = useState<string>();
@@ -67,6 +67,7 @@ function Admin() {
       {(
         <>
           <NavBar />
+          {workingTime}
           <div className="text-red-600">{error}</div>
           <div className="container">
             <div style={{padding:"100px"}}>
@@ -77,74 +78,11 @@ function Admin() {
                 onChange={(e) => {
                   let date = new Date(e.year, e.month-1, e.day, 0);
                   setSelectedDate(date);
+                  getTimeLeft(date.getTime().toString());
                 }}
-                
-                
               />
             </div>
           </div>
-
-          <div >
-            
-            <div>
-            {classes?.map((date, index) => (
-              <div
-              key={index}
-              onClick={() => {
-                setSelectedClass(index);
-                setIsMenuVisible((prev) => {
-                  const newValue = !prev;
-                  return newValue;
-                });
-              }}
-              className="bg-slate-500 border-2 border-white"
-              >
-                <div>{date}</div>
-              </div>
-            ))}
-            </div>
-
-            <div
-              className={isMenuVisible ? "pop-up absolute top-80" : "hidden"}
-            >
-              
-              <div className="bg-blue-500 w-80 ">
-                
-                {availableCandidates?.map((candidate, index) => (
-                  <div className="flex justify-around">
-                    <div key={index}>{candidate}</div>
-                    <button
-                      className="border-2 m-2"
-                      onClick={async () => {
-                        let todaysClasses = await getClasses(selectedDate);
-                        let numberOfClasses = 0;
-                        for (let i = 0; i < todaysClasses.length; i++) {
-                          if (todaysClasses[i].name == candidate) {
-                            numberOfClasses++;
-                          }
-                        }
-                      
-                        if (numberOfClasses >= 2) {
-                          setError(
-                            "Кандидатът не може да бъде записан за повече от 2 учебни часа!"
-                          );
-                        } else {
-                          
-                          
-                          
-                          if(classes)
-                            classes[selectedClass] = candidate
-                        }
-                        
-                        setRefresh((prev) => prev + 1);
-                      }}
-                    >
-                      zapishi
-                    </button>
-                  </div>
-                ))}              
-              </div>
-            </div>
 
             <div onClick={()=>{
                   setIsSearchVisible((prev) => {
@@ -153,7 +91,7 @@ function Admin() {
                   })
                 }}>
                   pokaji
-                </div>
+            </div>
 
                 <div
                   className={isSearchVisible ? "pop-up absolute top-80 bg-blue-700 p-20" : "hidden"}
@@ -179,12 +117,8 @@ function Admin() {
                   <button className = "ml-10 border border-black border-1" onClick = {()=>{
                     searchCandidates(name)
                   }}>търси</button>
-                  </div>
+              </div>
                   
-                  
-                  
-                  
-
                   {isCandidatesLoaded ? 
                     <div className="p-4 overflow-auto h-20">
                     {candidates?.map((candidate:Candidate,key:number)=>(
@@ -217,7 +151,6 @@ function Admin() {
                   
                 </div>
                 <div className = "border-1 border-black"onClick={()=>{
-                  console.log(candidate,selectedDate,hours,minutes)
                   signNewClass(
                     candidate,
                     selectedDate, 
@@ -227,7 +160,6 @@ function Admin() {
                   );
                 }}>Запиши</div>
                 </div>
-          </div>
         </>
       ) }
     </>
