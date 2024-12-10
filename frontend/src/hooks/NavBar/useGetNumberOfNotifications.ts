@@ -5,7 +5,8 @@ const useGetNumberOfNotifications = () =>{
     useEffect(()=>{
         const awaitFetch = async () => {
             const response = await fetch("http://localhost:8000/getNotifications",{
-                method:"GET"
+                method:"GET",
+                credentials:"include"
             })
             setNumber((await response.json()).length)
         }

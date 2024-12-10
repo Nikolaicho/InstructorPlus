@@ -6,7 +6,8 @@ const useGetAllDocuments = () =>{
     useEffect(()=>{
         async function getAllDocuments(){
         const response = await fetch("http://localhost:8000/getAllDocuments",{
-            method:"GET"
+            method:"GET",
+            credentials:"include"
         })
         
         setDocuments(await response.json())

@@ -19,9 +19,6 @@ const corporationSchema = new Schema({
         type:String,
         required:true,
         
-    },
-    responsiblePerson:{
-        type: Schema.Types.ObjectId, ref: 'User', 
     }
 })
 

@@ -17,7 +17,6 @@ async function createCorporation(req:express.Request,res:express.Response) {
 async function createInstructor(req:express.Request,res:express.Response){
   const {id} = req.body
   let userToBePromoted = await User.findById({_id:id})
-  console.log(userToBePromoted);
   userToBePromoted.role = "admin"
   userToBePromoted.save();
 }

@@ -13,7 +13,8 @@ const useAddDocument = () =>{
                 description:description,
                 relatedTo:relatedTo,
                 date:date,
-            })
+            }),
+            credentials:"include"
         })
     }
     return {addDocument}

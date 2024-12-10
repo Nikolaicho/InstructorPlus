@@ -130,10 +130,9 @@ function Documents() {
         {errorMessage}
         </div>
         <div className="bg-green-300 border-2 border-black" onClick={()=>{
-          const pattern = /^[А-Я]{1,2}\d{4}[А-Я]{2}$/;
-          if(pattern.test(registration)){
-            addCar(brand,model,registration)
-          }
+          
+          addCar(brand,model,registration)
+          
           
         }}>zadai</div>
     </>

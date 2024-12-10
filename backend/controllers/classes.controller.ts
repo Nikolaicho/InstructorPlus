@@ -33,6 +33,11 @@ const signNewClass = async (req: express.Request, res: express.Response) => {
    
     //id - userId 
     const {id,date,hours,minutes,longHour} = req.body;
+    console.log(hours,minutes)
+    if(id == undefined || date == undefined || (hours == undefined || hours == null)|| minutes == undefined || longHour ==undefined){
+      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за часа"})
+      return;
+    }
 
     let token = getCookie("access",req,res)
     let decodedToken = jwt.decode(token);
@@ -41,7 +46,7 @@ const signNewClass = async (req: express.Request, res: express.Response) => {
 
     //checks if the date for the lesson is valid
     if(await classesUtils.checkIfDateIsValid(idInstructor,id,date,hours,minutes,longHour) == false){
-      res.send("Невалиден час").status(StatusCodes.CONFLICT)
+      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалиден час"})
       return;
     }
     
@@ -75,13 +80,16 @@ const getAllClasses = async (req:express.Request,res:express.Response) =>{
     
     let {id} = jwt.decode(token)
 
-    res.send(JSON.stringify(await classesUtils.getAllClassesAggregator(req.body.searchedDate,id)))
+    res.send(JSON.stringify(await classesUtils.getAllClasses(req.body.searchedDate,id)))
 }
 
 
 
 const searchCandidates = async(req:express.Request,res:express.Response) =>{
     const {name} = req.body
+    if(name == undefined || name == null){
+      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидно търсене"})
+    }
     //splits given names to determine how many are they
     let names = name.split(" ")
   
@@ -103,7 +111,7 @@ const searchCandidates = async(req:express.Request,res:express.Response) =>{
       candidates = await User.find({firstName:names[0],lastName:names[1]})
     }
     else if(names.length == 1){
-      candidates = await User.find({firstName:names[0]}).lean()
+      candidates = await User.find({firstName:names[0]})
     }
     
     //getting the info that is needed for the frontend 
@@ -121,14 +129,21 @@ const searchCandidates = async(req:express.Request,res:express.Response) =>{
 
 const timeLeft = async(req:express.Request,res:express.Response) => {
   let fullWorkDay = 500 * 60 * 1000 //500 minutes in miliseconds (10 learning hours)
-  let  params = parseQueryParams(req.originalUrl)
+
+  let params = parseQueryParams(req.originalUrl)
+  if(params == undefined){
+    res.send(StatusCodes.BAD_REQUEST).json({message:"Невалидна заявка"})
+  }
+
   let searchedDate = parseInt(params.searchedDate)
   let cookie = getCookie("access",req,res)
   let id = jwt.decode(cookie).id
-  let dates:ClassDates[] = await classesUtils.getAllClassesAggregator(searchedDate,id)
+
+  let dates:ClassDates[] = await classesUtils.getAllClasses(searchedDate,id)
   dates.map((date)=>{
     fullWorkDay -= date.finalDate.getTime()-date.startDate.getTime()
   })
+  
   res.send({workTimeLeft:fullWorkDay})
 }
 

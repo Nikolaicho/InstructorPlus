@@ -2,6 +2,8 @@ import Cookies from "cookies";
 import express from "express";
 import jwt from "jsonwebtoken";
 import User, { userType } from "../models/user.models"
+import { StatusCodes } from "http-status-codes";
+import { getCookie } from "../utils/auth.utils";
 
 
 interface signInReq extends express.Request {
@@ -16,12 +18,26 @@ const verifyUserRole = async (req:express.Request,res:express.Response,next:expr
     let user = await User.findOne({email:payload});
     
     if(user?.role != "admin"){
-        res.status(403)
+        res.status(StatusCodes.FORBIDDEN)
     } 
-
-    (req as signInReq).user = user;
+    
     next()
 }
 
+const verifyUserCookie = async(req:express.Request,res:express.Response,next:express.NextFunction) => {
+    
+    let access = getCookie("access",req,res)
+    console.log(access)
+    jwt.verify(access,process.env.JWT_ACCESS_SECRET_KEY,(error)=>{
+        if(error){
+            
+            res.status(StatusCodes.CONFLICT).json({message:"Невалиден тоукън"})
+            return;
+        }
+        else{
+            next()
+        }
+    })
+}
 
-export default {verifyUserRole}
+export default {verifyUserRole,verifyUserCookie}

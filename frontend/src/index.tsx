@@ -10,8 +10,8 @@ import Notifications from "./components/Notifications";
 import Profile from "./components/Profile"
 import Registry from "./components/Registry";
 import SuperAdmin from "./components/superAdmin";
-
-
+import ChooseCorporation from "./components/ChooseCorporation"
+import ReviewRequests from "./components/ReviewRequests";
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
@@ -27,6 +27,8 @@ root.render(
       <Route path = "/profile/:id" element = {<Profile/>}/>
       <Route path = "/registry" element = {<Registry/>}/>
       <Route path = "/createCorporation" element = {<SuperAdmin/>}/>
+      <Route path = "/requestJoining" element = {<ChooseCorporation/>}/>
+      <Route path = "/reviewRequests" element = {<ReviewRequests/>}/>
     </Routes>
   </Router>
 );

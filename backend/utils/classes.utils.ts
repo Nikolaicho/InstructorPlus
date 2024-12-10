@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import User from "../models/user.models";
 
 //this method is to be used in both functions - getAllClasses and timeLeft
-const getAllClassesAggregator = async (searchedDate:number,InstructorId:string) => {
+const getAllClasses = async (searchedDate:number,InstructorId:string) => {
     //getting searched date in date object
     let date = new Date(searchedDate);
   
@@ -58,7 +58,7 @@ const checkIfDateIsValid = async(instructorId:string,userId:string,date:string,h
     let startOfTheNewLesson = new Date(date).getTime() + parseInt(hours) * 60 * 60 * 1000 + parseInt(minutes) * 60 * 1000 
     let finalOfTheNewLesson = new Date(date).getTime() + parseInt(hours) * 60 * 60 * 1000 + (parseInt(minutes) + parseInt(longHour)) * 60 * 1000
     
-    let dates = await getAllClassesAggregator(new Date(date).getTime(),instructorId)
+    let dates = await getAllClasses(new Date(date).getTime(),instructorId)
 
     let candidatesMinutes = candidateTime(dates,userId);
     
@@ -118,4 +118,4 @@ const candidateTime = (dates:any[],userId:string) =>{
   return learningMinutes
 } 
 
-export default {getAllClassesAggregator,checkIfDateIsValid}
+export default {getAllClasses,checkIfDateIsValid}

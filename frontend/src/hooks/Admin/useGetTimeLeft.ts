@@ -8,8 +8,8 @@ const useGetTimeLeft = () => {
         const params = new URLSearchParams({
             searchedDate:searchedDate
         })
-
-        let response = await fetch("http://localhost:8000/getTimeLeft?"+params,{
+        //?+params
+        let response = await fetch("http://localhost:8000/getTimeLeft",{
             method:"GET",
             credentials:"include"
         })

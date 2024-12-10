@@ -1,5 +1,6 @@
 import express from "express";
 import Document from "../models/document.model"
+import { StatusCodes } from "http-status-codes";
 
 const getNotifications = async(req:express.Request,res:express.Response) =>{
   //getting notifications that are due within 1 month
@@ -13,7 +14,7 @@ const getNotifications = async(req:express.Request,res:express.Response) =>{
       }
     }]
     const response = await Document.aggregate(pipeLine);
-    res.status(200).send(response);
+    res.status(StatusCodes.OK).send(response);
 }
 
 export default {getNotifications}

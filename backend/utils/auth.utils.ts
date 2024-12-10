@@ -2,11 +2,11 @@ import Cookies from "cookies";
 import jwt from "jsonwebtoken";
 import express from "express"
 
-function generateTokens(payload:string):Array<string>{
+function generateTokens(name:string,id:string):Array<string>{
     const accessSecretKey = process.env.JWT_ACCESS_SECRET_KEY
     const refreshSecretKey = process.env.JWT_REFRESH_SECRET_KEY
-    const accessToken = jwt.sign({payload:payload},accessSecretKey,{ expiresIn: "15s" }) as string
-    const refreshToken = jwt.sign({payload:payload},refreshSecretKey) as string
+    const accessToken = jwt.sign({name:name,id:id},accessSecretKey,{expiresIn:"2h"}) as string
+    const refreshToken = jwt.sign({name:name,id:id},refreshSecretKey) as string
     return [accessToken,refreshToken]
 }
 

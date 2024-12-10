@@ -136,7 +136,8 @@ function Admin() {
                   <div>
                     <div>Час</div>
                     <input className="w-20 m-4" onChange={(e)=>{
-                      
+                      //TODO направи промени по случаи като 1a или 123
+
                       setHours(parseInt(e.target.value))
                     }}></input>
                     

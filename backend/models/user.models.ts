@@ -48,7 +48,7 @@ const userSchema = new Schema({
     finalDate:Date, 
   }],
   organization:{
-    type: Schema.Types.ObjectId, ref: 'Corporation',
+    type: String, ref: 'Corporation',
     default:null
   }
 });

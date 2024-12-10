@@ -7,10 +7,21 @@ import User from "../models/user.models"
 
 async function getUserProfileInfo(req:express.Request,res:express.Response){
   const params = parseQueryParams(req.originalUrl)
+
+  if(params == undefined){
+    res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни параметри"})
+    return;
+  }
+
   const id = params.candidateId
   //sending data to be displayed in the profile of the user
   let user = await User.findById({_id:id})
   let {firstName,surname,lastName} = user;
+
+  if(firstName == undefined || surname == undefined || lastName == undefined){
+    res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидно id"})
+    return 
+  }
 
   let transactions = await Transaction.find({candidate:id}).lean()
 
@@ -24,8 +35,12 @@ async function getUserProfileInfo(req:express.Request,res:express.Response){
 }
   
 async function makeTransaction(req:express.Request,res:express.Response){
+  //TODO НАПРАВИ ДА ИЗПИСВА АКО НЕ НАМИРА ЧОВЕКА
+
     const {sum,id} = req.body
-  
+    if(sum == undefined || id == undefined){
+      res.status(StatusCodes.BAD_REQUEST).json("Невалидни данни за транзакция")
+    } 
     const transaction = new Transaction({
       date:new Date(),
       sum:sum,

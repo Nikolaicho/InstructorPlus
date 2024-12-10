@@ -18,10 +18,7 @@ function useGetCandidateInfo(id:string|undefined){
         
         const response = await fetch(`${baseUrl}?${params}`,{
             method:"GET",
-           
-            headers:{
-                "Content-Type":"application/json"
-            },
+            credentials:"include"
         })
         
         setUserInfo(await(response.json()))

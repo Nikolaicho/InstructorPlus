@@ -1,7 +1,7 @@
 import React from "react";
 import { useState } from "react";
-import useGetAllCorporations from "../hooks/Request/useGetAllCorporations"
-import useSendRequestToJoin from "../hooks/Request/useSendRequestToJoin";
+import useGetAllCorporations from "../hooks/ChooseCorporation/useGetAllCorporations"
+import useSendRequestToJoin from "../hooks/ChooseCorporation/useSendRequestToJoin";
 import { Corporation } from "../interfaces/corporation.interface";
 function ChooseCorporation (){
     const {corporations} = useGetAllCorporations();

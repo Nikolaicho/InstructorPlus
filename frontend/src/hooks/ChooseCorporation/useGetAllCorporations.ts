@@ -4,7 +4,8 @@ const useGetAllCorporations = () =>{
     const [corporations,setCorporations] = useState<Corporation[]>()
     const getAllCorporations = async () =>{
         let response = await fetch("http://localhost:8000/getAllCorporations",{
-            method:"GET"
+            method:"GET",
+            credentials:"include",
         })
         setCorporations(await(response.json()))
     }
