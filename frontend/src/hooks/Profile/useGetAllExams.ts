@@ -13,8 +13,8 @@ const useGetAllExams = (id:string|undefined) => {
     const getAllExams = async() => {
         const result = await fetch(`${baseUrl}?${params}`,{
             method:"GET",
+            credentials:"include"
         })
-        console.log(await (result.json()))
     }
     useEffect(()=>{
         getAllExams()

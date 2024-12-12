@@ -11,7 +11,8 @@ const useCreateCorporation = () => {
             }),
             headers:{
                 "Content-Type":"application/json"
-            }
+            },
+            credentials:"include"
         })
     }
     return {createCorporation}

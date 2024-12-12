@@ -5,7 +5,8 @@ const useGetAllCars = () =>{
 
     const getAllCars = async () =>{
         const response = await fetch("http://localhost:8000/getAllCars",{
-            method:"GET"
+            method:"GET",
+            credentials:"include"
         })
         setCars(await response.json())
         

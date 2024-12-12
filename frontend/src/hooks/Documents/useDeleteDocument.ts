@@ -8,7 +8,8 @@ const useDeleteDocument = () =>{
             },
             body:JSON.stringify({
                 id:id
-            })
+            }),
+            credentials:"include"
         })
     }
     return {deleteDocument}

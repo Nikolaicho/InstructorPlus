@@ -9,7 +9,8 @@ const useSignNewExam = () => {
             }),
             headers:{
                 "Content-Type":"application/json"
-            }
+            },
+            credentials:"include"
         })
     }
     return {signNewExam}

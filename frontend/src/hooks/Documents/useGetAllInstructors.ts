@@ -5,7 +5,8 @@ const useGetAllInstructors = () =>{
     useEffect(()=>{
         async function getAllInstructors(){
           const response = await fetch("http://localhost:8000/getAllInstructors",{
-            method:"GET"
+            method:"GET",
+            credentials:"include"
           })
           setInstructors(await response.json())
         }

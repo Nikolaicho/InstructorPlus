@@ -7,7 +7,8 @@ const useDeleteTransaction = () => {
             }),
             headers:{
                 "Content-Type":"application/json"
-            }
+            },
+            credentials:"include"
         })
     }
     return {deleteTransaction}

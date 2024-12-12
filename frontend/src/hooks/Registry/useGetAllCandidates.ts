@@ -6,7 +6,8 @@ function useGetAllCandidates(){
     async function getAllCandidates(){
         
         let response = await fetch(`http://localhost:8000/getAllAvailableCandidates`,{
-            method:"GET"
+            method:"GET",
+            credentials:"include"
         })
         setUserInfo(await (response.json()))
     }
