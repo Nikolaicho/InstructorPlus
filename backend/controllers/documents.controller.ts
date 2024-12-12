@@ -3,11 +3,16 @@ import Document from "../models/document.model"
 import User from "../models/user.models"
 import Car from "../models/car.model";
 import { StatusCodes } from "http-status-codes";
+import { getCookie } from "../utils/auth.utils";
+import tokenUtils from "../utils/token.utils"
+import jwt from "jsonwebtoken";
 
 const createNewDocument = (req:express.Request,res:express.Response) =>{
     const {type,name,description,relatedTo,date} = req.body
+    
+    let organization = tokenUtils.getCorporationFromCookie(req,res)
 
-    if(type == undefined || name == undefined || description == undefined || relatedTo == undefined || date == undefined){
+    if(type == undefined || name == undefined || description == undefined || date == undefined){
       res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за документ"})
       return;
     }
@@ -17,7 +22,8 @@ const createNewDocument = (req:express.Request,res:express.Response) =>{
       name:name,
       description:description,
       relatedTo:relatedTo,
-      date:date
+      date:date,
+      organization:organization,
     })
 
     newDocument.save()
@@ -26,9 +32,9 @@ const createNewDocument = (req:express.Request,res:express.Response) =>{
 }
   
 const getAllDocuments = async (req:express.Request,res:express.Response) => {
-  //TODO make getting document possible only for your corporation
-    const documents = await Document.find({})
-    res.status(200).send(documents)
+  let organization = tokenUtils.getCorporationFromCookie(req,res)
+  const documents = await Document.find({organization})
+  res.status(StatusCodes.OK).send(documents)
 }
 const getAllInstructors = async(req:express.Request,res:express.Response)=>{
   //TODO направи интерфейс за масива
@@ -44,6 +50,7 @@ const addCar = async(req:express.Request,res:express.Response) => {
   //TODO направи колите да се добавят към дадена фирма
     const {brand,model,registration} = req.body;
 
+    let organization = tokenUtils.getCorporationFromCookie(req,res)
     if(brand == undefined || model == undefined || registration == undefined){
       res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за кола"})
       return
@@ -66,6 +73,7 @@ const addCar = async(req:express.Request,res:express.Response) => {
         _id:registration,
         brand:brand,
         model:model,
+        orginazation:organization,
       })
   
       car.save()
@@ -74,23 +82,47 @@ const addCar = async(req:express.Request,res:express.Response) => {
 }
   
 const getAllCars = async(req:express.Request,res:express.Response) =>{
-  //TODO направи така че да намираш коли само от твоята фирма и да казваш ако няма никакви коли 
-    const cars = await Car.find({});
-    res.status(200).send(cars)
+  let organization = tokenUtils.getCorporationFromCookie(req,res)
+
+  const cars = await Car.find({organization});
+
+  if(cars.length == 0){
+    res.status(StatusCodes.NOT_FOUND).json({message:"Няма намерени автомобили"})
+    return;
+  }
+
+  res.status(StatusCodes.OK).send(cars)
 }
 
 const deleteDocuments = async (req:express.Request,res:express.Response) =>{
-  //TODO направи така че да праща отговор на клиента ако няма документ с такова ид
     const {id} = req.body
+
     if(id == undefined){
       res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидно id"})
       return;
     }
+
+    //TODO провери дали работи като хората
+    if(await Document.findById({_id:id}) == null){
+      res.status(StatusCodes.NOT_FOUND).json({message:"Няма документ с такъв идентификационен номер"})
+    }
+
     await Document.deleteOne({_id:id});
 }
   
 const deleteCar = async(req:express.Request,res:express.Response) => {
     const {id} = req.body
+
+    if(id == undefined){
+      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидно id"})
+      return;
+    }
+
+    //TODO провери дали работи като хората
+    if(await Car.findById({_id:id}) == null){
+      res.status(StatusCodes.NOT_FOUND).json({message:"Няма автомобил с такъв идентификационен номер"})
+    }
+
     await Car.deleteOne({_id:id})
 }
 

@@ -9,6 +9,10 @@ const documentSchema = new Schema({
     relatedTo:{
         type:Schema.ObjectId
     },
+    organization:{
+        type:String,
+        ref:"Corporation"
+    }
 })
 const Document = mongoose.model("Document",documentSchema);
 export default Document;

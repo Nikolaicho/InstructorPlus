@@ -5,6 +5,7 @@ const carSchema = new Schema({
     _id:String,
     model:String,
     brand:String,
+    orginazation:{type:String,ref:"Corporation"}
 })
 const Car = mongoose.model("Car",carSchema);
 export default Car;
