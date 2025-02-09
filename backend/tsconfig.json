@@ -1,5 +1,7 @@
 {
     "compilerOptions": {
       "esModuleInterop": true,
-    }
+      "outDir": "dist"
+      },    
+      "include": ["server.ts"]
 }
