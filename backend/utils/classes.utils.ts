@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 import User from "../models/user.models";
+import Exam from "../models/exams.model";
+
 
 //this method is to be used in both functions - getAllClasses and timeLeft
-const getAllClasses = async (searchedDate:number,InstructorId:string) => {
+const getAllClasses = async (searchedDate:number,InstructorId:string,increment:number) => {
     //getting searched date in date object
     let date = new Date(searchedDate);
   
@@ -10,13 +12,14 @@ const getAllClasses = async (searchedDate:number,InstructorId:string) => {
     //for example the searched date is 26/11/2024
     //i am getting the time between 26/11/2024 00:00 and 27/11/2024 00:00
     let firstDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    let lastDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(),date.getDate()+1));
+    let lastDay = new Date(Date.UTC(date.getFullYear(), date.getMonth(),date.getDate()+increment));
 
     interface ClassDates {
       finalDate:Date,
       startDate:Date,
       name:string,
     }
+
     //pipeline that gets me only dates field from the user in the DB
     const classPipeline: mongoose.PipelineStage[] = [
       {
@@ -42,13 +45,13 @@ const getAllClasses = async (searchedDate:number,InstructorId:string) => {
         },
       },
       {
-        $sort: { "dates.finalDate": 1 }, // Explicitly reference the nested field
+        $sort: { "dates.finalDate": 1 }, 
       },
     ];
     
     let dates = await User.aggregate(classPipeline)
     //TODO
-    //.map() removes dates:{} 
+    //.map() removes dates:{}
     return dates.map(item => item.dates)
 }
 
@@ -58,7 +61,7 @@ const checkIfDateIsValid = async(instructorId:string,userId:string,date:string,h
     let startOfTheNewLesson = new Date(date).getTime() + parseInt(hours) * 60 * 60 * 1000 + parseInt(minutes) * 60 * 1000 
     let finalOfTheNewLesson = new Date(date).getTime() + parseInt(hours) * 60 * 60 * 1000 + (parseInt(minutes) + parseInt(longHour)) * 60 * 1000
     
-    let dates = await getAllClasses(new Date(date).getTime(),instructorId)
+    let dates = await getAllClasses(new Date(date).getTime(),instructorId,1)
 
     let candidatesMinutes = candidateTime(dates,userId);
     
@@ -118,4 +121,18 @@ const candidateTime = (dates:any[],userId:string) =>{
   return learningMinutes
 } 
 
-export default {getAllClasses,checkIfDateIsValid}
+const getAllExam = async (date:Date,userId:string) => {
+  
+  let pipeline = [{
+    $match:{
+      candidate:new mongoose.Types.ObjectId(userId),
+      date:{
+        $gte:date
+      }
+    }
+  }]
+
+  return await Exam.aggregate(pipeline)
+}
+
+export {getAllClasses,checkIfDateIsValid,getAllExam}
