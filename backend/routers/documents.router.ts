@@ -10,5 +10,6 @@ router.get("/getAllInstructors",authMiddleware.verifyUserCookie,documentsControl
 router.post("/addCar",authMiddleware.verifyUserCookie,documentsController.addCar)
 router.get("/getAllCars",authMiddleware.verifyUserCookie,documentsController.getAllCars)
 router.post("/deleteDocument",authMiddleware.verifyUserCookie,documentsController.deleteDocuments)
+router.post("/createInstructor",authMiddleware.verifyUserCookie,documentsController.createInstructor)
 
 export default router;

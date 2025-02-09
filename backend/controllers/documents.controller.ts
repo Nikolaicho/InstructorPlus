@@ -3,38 +3,62 @@ import Document from "../models/document.model"
 import User from "../models/user.models"
 import Car from "../models/car.model";
 import { StatusCodes } from "http-status-codes";
-import { getCookie } from "../utils/auth.utils";
-import tokenUtils from "../utils/token.utils"
-import jwt from "jsonwebtoken";
+import {getCorporationFromCookie} from "../utils/token.utils"
+import { format } from "date-fns";
 
 const createNewDocument = (req:express.Request,res:express.Response) =>{
-    const {type,name,description,relatedTo,date} = req.body
-    
-    let organization = tokenUtils.getCorporationFromCookie(req,res)
+  const {data} = req.body
+  const {documentName,relatedTo,date} = data
+  let organization = getCorporationFromCookie(req,res)
 
-    if(type == undefined || name == undefined || description == undefined || date == undefined){
-      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за документ"})
-      return;
-    }
+  if(documentName == undefined || date == undefined || relatedTo == undefined){
+    res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за документ"})
+    return;
+  }
 
-    const newDocument = new Document({
-      type:type,
-      name:name,
-      description:description,
-      relatedTo:relatedTo,
-      date:date,
-      organization:organization,
-    })
+  const newDocument = new Document({
+    name:documentName,
+    relatedTo:relatedTo,
+    date:date,
+    organization:"1233",
+  })
 
-    newDocument.save()
+  newDocument.save()
 
-    res.status(StatusCodes.OK).json({message:"document added successfully"})
+  res.status(StatusCodes.OK).json({message:"document added successfully"})
 }
   
 const getAllDocuments = async (req:express.Request,res:express.Response) => {
-  let organization = tokenUtils.getCorporationFromCookie(req,res)
+  let organization = getCorporationFromCookie(req,res)
   const documents = await Document.find({organization})
-  res.status(StatusCodes.OK).send(documents)
+  const now = new Date(); // Get the current date and time
+  const oneWeekLater = new Date(now.getFullYear(), now.getMonth(), now.getDate()+7)
+  const oneMonthLater = new Date(now.getFullYear(), now.getMonth()+1, now.getDate())
+
+  let formatedDocuments = []
+
+  documents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  documents.map((document:any,index:number)=>{
+    let mark = '';
+    if(document.date.getTime() < oneWeekLater.getTime()){
+      mark = "Критично"
+    }
+    else if(document.date.getTime() < oneMonthLater.getTime()){
+      mark = "Опасно"
+    }
+    else{
+      mark = "Безопасно"
+    }
+    formatedDocuments.push({
+      id:document._id.toString(),
+      name:document.name,
+      date:format(document.date,"dd.MM.yyyy"),
+      relatedTo:document.relatedTo,
+      mark:mark,
+    })
+  })
+  res.status(StatusCodes.OK).send(formatedDocuments)
 }
 const getAllInstructors = async(req:express.Request,res:express.Response)=>{
   //TODO направи интерфейс за масива
@@ -48,41 +72,42 @@ const getAllInstructors = async(req:express.Request,res:express.Response)=>{
 }
 const addCar = async(req:express.Request,res:express.Response) => {
   //TODO направи колите да се добавят към дадена фирма
-    const {brand,model,registration} = req.body;
+  const {data} = req.body
+  const {brand,model,registration} = data;
 
-    let organization = tokenUtils.getCorporationFromCookie(req,res)
-    if(brand == undefined || model == undefined || registration == undefined){
-      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за кола"})
-      return
-    }
+  let organization = getCorporationFromCookie(req,res)
+  if(brand == undefined || model == undefined || registration == undefined){
+    res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за кола"})
+    return
+  }
 
-    //А, В, Е, К, М, Н, О, Р, С, Т, У, Х,
-    //TODO провери пак дали си взел всички начални префиксове за номерата
-    let regexNumberPlate = /^(ВН|М|ВР|ЕН|ВТ|Р|Т|РР|СС|ТХ|Н|В|ЕВ|ОВ|СО|С|СА|СВ|РВ|СТ|СН|А|У|Х|К|СМ|Е|КН|РК)\d{4}[АВЕКМНОРСТУХ]{2}$/
-    if(!regexNumberPlate.test(registration)){
-      res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидна регистрация"})
-    }
+  //А, В, Е, К, М, Н, О, Р, С, Т, У, Х,
+  //TODO провери пак дали си взел всички начални префиксове за номерата
+  let regexNumberPlate = /^(ВН|М|ВР|ЕН|ВТ|Р|Т|РР|СС|ТХ|Н|В|ЕВ|ОВ|СО|С|СА|СВ|РВ|СТ|СН|А|У|Х|К|СМ|Е|КН|РК)\d{4}[АВЕКМНОРСТУХ]{2}$/
+  if(!regexNumberPlate.test(registration)){
+    res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидна регистрация"})
+  }
 
-    //this checks if car with this registration exists
-    if(await Car.findOne({_id:registration}) != null){
-      res.status(StatusCodes.CONFLICT).json({message:"Кола с този регистрационен номер вече съществува"})
-    }
-    //creates car
-    else{
-      const car = new Car({
-        _id:registration,
-        brand:brand,
-        model:model,
-        orginazation:organization,
-      })
+  //this checks if car with this registration exists
+  if(await Car.findOne({_id:registration}) != null){
+    res.status(StatusCodes.CONFLICT).json({message:"Кола с този регистрационен номер вече съществува"})
+  }
+  //creates car
+  else{
+    const car = new Car({
+      _id:registration,
+      brand:brand,
+      model:model,
+      orginazation:organization,
+    })
   
-      car.save()
-      res.status(StatusCodes.OK).json({message:"Колата регистрирана успешно"})
-    }
+    car.save()
+    res.status(StatusCodes.OK).json({message:"Колата регистрирана успешно"})
+  }
 }
   
 const getAllCars = async(req:express.Request,res:express.Response) =>{
-  let organization = tokenUtils.getCorporationFromCookie(req,res)
+  let organization = getCorporationFromCookie(req,res)
 
   const cars = await Car.find({organization});
 
@@ -126,4 +151,12 @@ const deleteCar = async(req:express.Request,res:express.Response) => {
     await Car.deleteOne({_id:id})
 }
 
-export default {createNewDocument,getAllDocuments,getAllCars,getAllInstructors,deleteCar,deleteDocuments,addCar}
+async function createInstructor(req:express.Request,res:express.Response){
+  const {data} = req.body
+  const {id} = data
+  let userToBePromoted = await User.findById({_id:id})
+  userToBePromoted.role = "admin"
+  userToBePromoted.save();
+}
+
+export default {createNewDocument,getAllDocuments,getAllCars,getAllInstructors,deleteCar,deleteDocuments,addCar,createInstructor}
