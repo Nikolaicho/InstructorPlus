@@ -6,12 +6,15 @@ import {
 	StatusCodes,
 } from 'http-status-codes';
 import jwt from "jsonwebtoken"
+import Corporation from "../models/corporation.model";
 
 
 const handleRegister = async (req:express.Request,res:express.Response) => {
-    //TODO needs hashing of the password
-    const {firstName,surname,lastName,telephone,email,password} = req.body
+    const {data} = req.body
+    const {firstName,surname,lastName,telephone,email,password} = data
 
+    /*
+    temporary
     if(firstName == undefined || surname == undefined || lastName == undefined || 
     telephone == undefined || email == undefined || password == undefined)
     {
@@ -44,7 +47,7 @@ const handleRegister = async (req:express.Request,res:express.Response) => {
        res.status(StatusCodes.CONFLICT).json({message: "Този имейл вече се използва"});
        return;
     }
-
+       */
     const user = new User({
         firstName:firstName,
         surname:surname,
@@ -58,21 +61,29 @@ const handleRegister = async (req:express.Request,res:express.Response) => {
     user.save();
 
     const cookies = new Cookies(req,res,{secure:true})
-    const tokens = generateTokens(email,user._id.toString())
+    const tokens = generateTokens(email,user._id.toString(),null,"user")
     cookies.set("access",tokens[0])
     cookies.set("refresh",tokens[1])
     res.status(StatusCodes.OK).send("Потребителят е регистриран успешно");
 };
 
 const handleLogIn = async (req:express.Request,res:express.Response)=>{
-    const {email,password} = req.body
-    //TODO needs hashing of the password    
-    const user = await User.findOne({email})  
+    const {data} = req.body
+    const {email,password} = data
+
+    const user = await User.findOne({email})
+    const corp = await Corporation.findById({_id:user.organization})  
     if(user != null && user.password == password){
-        const cookies = new Cookies(req,res,{secure:true})
-        const tokens = generateTokens(email,user._id.toString())
-        cookies.set("access",tokens[0])
-        cookies.set("refresh",tokens[1])
+        const secureCookies = new Cookies(req,res,{secure:true})
+        const cookies = new Cookies(req,res,{secure:false})
+        const tokens = generateTokens(email,user._id.toString(),user.organization,user.role)
+        secureCookies.set("access",tokens[0])
+        secureCookies.set("refresh",tokens[1])
+        cookies.set("corp",corp.name,{
+            httpOnly: false, 
+            secure: false,   
+            
+        })
         res.status(StatusCodes.OK).json({message:"Successfully logged in"})
     }
     else{
@@ -80,19 +91,25 @@ const handleLogIn = async (req:express.Request,res:express.Response)=>{
     }
 }
 
-
 const isAdmin = async (req:express.Request,res:express.Response)=>{
-    const token = getCookie("token",req,res)
+    const token = getCookie("access",req,res)
     let payload = jwt.decode(token)
+    console.log(payload)
     
-    let response = await User.findOne({email:payload})
+    let response = await User.findById({_id:payload.id})
     if(response && response.role == "admin"){
         res.status(StatusCodes.OK).json({isAdmin:true})
     }
     else{
         res.status(StatusCodes.FORBIDDEN).json({isAdmin:false})
-    }
-    
+    }   
 }
 
-export default {handleRegister, handleLogIn,isAdmin}
+const logOut = async (req:express.Request,res:express.Response)=>{
+    res.clearCookie('refresh');
+    res.clearCookie('access');
+    res.clearCookie("corp");
+    res.status(200).send('Logout successful');
+}
+
+export default {handleRegister, handleLogIn,isAdmin,logOut}
