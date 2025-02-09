@@ -68,7 +68,7 @@ app.use(requestToJoinRouter);
 // MVC
 // client -> WAN -> server -> router ( handles endpoint ) -> middleware (prepare requests ) -> controller ( handles requests ) -> view ( formats reponse ) 
 
-
-server.listen(process.env.PORT, () => {
+const PORT = process.env.PORT || 8000;
+server.listen(PORT, () => {
   console.log("Server is on");
 })
