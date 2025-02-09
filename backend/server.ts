@@ -9,9 +9,46 @@ import classesRouter from "./routers/classes.router"
 import superAdminRouter from "./routers/superAdmin.router"
 import notificationRouter from "./routers/notifications.router";
 import requestToJoinRouter from "./routers/requestToJoin.router";
+import Corporation from "./models/corporation.model";
 dotenv.config();
 
 const app = express();
+const http = require("http");
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+
+
+const obj = {};
+
+io.on('connection', (socket) => {
+      socket.on("message", async (message)=> {
+        let corporations = await Corporation.find({ name: { $regex: `^${message}`, $options: "i" }})
+        let info = [] 
+        if(message == ""){
+          socket.emit("results",[])
+        }
+        else{
+
+          corporations.map((corp)=>{
+            info.push(
+              {
+                name:corp.name,
+                id:corp._id,
+                telephone:corp.telephone,
+                address:corp.adress
+              })
+          })
+          socket.emit("results",info)
+        }
+      })
+})
+
 
 mongoose.connect(`mongodb+srv://chess:${process.env.MONGOOSE_PASSWORD}@cluster0.unabrut.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`).
   catch(error => console.log(error))
@@ -32,6 +69,6 @@ app.use(requestToJoinRouter);
 // client -> WAN -> server -> router ( handles endpoint ) -> middleware (prepare requests ) -> controller ( handles requests ) -> view ( formats reponse ) 
 
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log("Server is on");
 })
