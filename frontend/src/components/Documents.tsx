@@ -7,17 +7,107 @@ import useGetAllDocuments from "../hooks/Documents/useGetAllDocuments"
 import useGetAllCars from "../hooks/Documents/useGetAllCars";
 import useDeleteDocument from "../hooks/Documents/useDeleteDocument";
 import {Car,Instructor} from "../interfaces/documents.interface"
+import useCreateInstructor from "../hooks/Documents/useCreateInstructor";
+import SideBar from "./SideBar";
+import PopUpForm from "./PopUpForm";
+import PopUpAdd from "./PopUpAdd";
+import PopUpDocument from "./PopUpDocument"
+import DeleteIcon from '@mui/icons-material/Delete';
+import PopUpDelete from "./PopUpDelete";
 
 
 function Documents() {
-
-  //imports
+  const [activeButton,setActiveButton] = useState<number>(0)
   const { addDocument } = useAddDocument();
-  const {addCar,errorMessage } = useAddCar();
+  const {documents,setDocuments} = useGetAllDocuments();
+  const {deleteDocument} = useDeleteDocument();
+  const {createInstructor} = useCreateInstructor()
+  const {addCar,errorMessage } = useAddCar()
+  
+  const deleteClassFromUI = (index:number) => {
+    if(documents != undefined){
+      let docs = [...documents]
+      docs.splice(index,1)
+      setDocuments(docs)
+    }
+  }
+  return(<>
+        <NavBar/>
+        <div className = "flex">
+        <SideBar/>
+        <div className = "flex flex-col">
+
+          <div className = "flex justify-around w-[85vw] font-bold ">
+          <div className = "bg-gray-400 w-[250px] h-[30px] py-4 text-center rounded-xl flex items-center justify-center mt-2 hover:bg-gray-300 cursor-pointer border-2 border-black"onClick={()=>{
+              setActiveButton(1)
+            }}>Повиши към инструктор</div>
+            <div className = "bg-gray-400 w-[250px] h-[30px] py-4 text-center rounded-xl flex items-center justify-center mt-2 hover:bg-gray-300 cursor-pointer border-2 border-black"onClick={()=>{
+              setActiveButton(2)
+            }}>Премахни инструктор</div>
+            <div className = "bg-gray-400 w-[250px] h-[30px] py-4 text-center rounded-xl flex items-center justify-center mt-2 hover:bg-gray-300 cursor-pointer border-2 border-black"onClick={()=>{
+              setActiveButton(3)
+            }}>Добави кола</div>
+            <div className = "bg-gray-400 w-[250px] h-[30px] py-4 text-center rounded-xl flex items-center justify-center mt-2 hover:bg-gray-300 cursor-pointer border-2 border-black"onClick={()=>{
+              setActiveButton(4)
+            }}>Премахни кола</div>
+            <div className = "bg-gray-400 w-[250px] h-[30px] py-4 text-center rounded-xl flex items-center justify-center mt-2 hover:bg-gray-300 cursor-pointer border-2 border-black"onClick={()=>{
+              setActiveButton(5)
+            }}>Създай документ</div>
+
+            </div>
+              <div className = "flex ml-8">
+                {documents ? documents.map((document:any,index:number)=>(
+                  <div className = "w-[200px] h-[150px] bg-white border-2 border-black  mt-4 mr-4 ">
+                    <div className = {`${document.mark == "Безопасно" ? "bg-green-500" : document.mark == "Опасно" ? "bg-orange-600": document.mark == "Критично" ? "bg-red-600":""} text-center font-semibold border-b border-black`}>
+                      {document.mark}
+                    </div>
+                    <div className = "text-center my-[5px]">
+                      {document.name}
+                    </div>
+                    <div className = "text-center my-[5px]">
+                      {document.relatedTo}
+                    </div>
+                    <div className = "text-center my-[5px]">
+                      {document.date}
+                    </div>
+                    <div className = "flex justify-between mx-2">
+                      <DeleteIcon onClick={()=>{
+                      deleteDocument(document.id)
+                      deleteClassFromUI(index)
+                      }}/>
+                    </div>
+                    </div>
+                )) :<></>}
+              </div>
+            </div>
+
+          
+        
+            {activeButton === 1 
+            ? <PopUpAdd rows={["Потребителско ID"]} submitFunc = {createInstructor} jsonFields = {["id"]} setButton = {setActiveButton}/>
+            :activeButton === 2
+            ?<PopUpDelete type = "person" submitFunc = {createInstructor} jsonFields = {["id"]} setButton = {setActiveButton}/>
+            : activeButton === 3 
+            ? <PopUpAdd rows={["Марка","Модел","Рег.номер"]} submitFunc={addCar} jsonFields = {["brand","model","registration"]} setButton = {setActiveButton}/>
+            : activeButton === 4
+            ? <PopUpDelete type = "car" submitFunc={createInstructor} jsonFields = {["registration"]} setButton = {setActiveButton}/>
+            :activeButton === 5
+            ? <PopUpDocument rows={["Документ"]} submitFunc={addDocument} jsonFields={["documentName","relatedTo","date"]} setButton = {setActiveButton}/>   
+            :<></>     
+            } 
+
+      </div>
+  </>)  
+}
+export default Documents;
+
+/*
+
+ //imports
   const {instructors} = useGetAllInstructors()
   const {cars} = useGetAllCars()
-  const {isDocumentsLoaded,documents} = useGetAllDocuments();
-  const {deleteDocument} = useDeleteDocument();
+  
+  
 
   //document property
   const [documentType,setDocumentType] = useState<string>("firm")
@@ -35,8 +125,6 @@ function Documents() {
   const [brand,setBrand] = useState<string>("")
   const [model,setModel] = useState<string>("")
   const [registration,setRegistration] = useState<string>("")
-  
-
   
   useEffect(()=>{
     if(documentType == "personal"){
@@ -137,5 +225,4 @@ function Documents() {
         }}>zadai</div>
     </>
   );
-}
-export default Documents;
+  */
