@@ -3,71 +3,78 @@ import useGetCandidateInfo from "../hooks/Profile/useGetCandidateInfo"
 import { useParams } from 'react-router';
 import useMakeTransaction from "../hooks/Profile/useMakeTransaction";
 import { useState } from "react";
-import useSignNewExam from "../hooks/Profile/useSignNewExam";
 import useGetAllExams from "../hooks/Profile/useGetAllExams"
-import { Transaction } from "../interfaces/profile.interface";
-import useDeleteTransaction from "../hooks/Profile/useDeleteTransaction";
+import SideBar from "./SideBar";
+import ProfileCard from "./ProfileCard";
+import TableForProfile from "./TableForProfile";
+import useGetAllTransactions from "../hooks/Profile/useGetAllTransactions";
+import PopUpForm from "../components/PopUpForm"
+import ExamsPopUp from "../components/ExamsPopUp"
+import useIsAdmin from "../hooks/Admin/useIsAdmin";
 
 function Profile(){
+    
     const {id} = useParams() 
-
-    const {userInfo,isLoaded} = useGetCandidateInfo(id)
-
-    const {makeTransaction} = useMakeTransaction();
-    const {signNewExam} = useSignNewExam();
-    useGetAllExams(id);
-    const {deleteTransaction} = useDeleteTransaction();
-
-    const [sum,setSum] = useState(0)
-    const [typeOfExam,setTypeOfExam] = useState<string>("theoretical")
-    const [examResults,setExamResult] = useState<string>("yes")
-
-    return(
-    <>
-    <NavBar/>
-    
-    {isLoaded ? <div>
-        {userInfo?.transactions.map((transaction:any,key:number)=>(
-            <div>
-            <div className="mb-4">номер на транзакциятa:{transaction._id} <br/> {transaction.sum} лева <br/> дата:{transaction.date}</div>
-            <button onClick={()=>{
-                deleteTransaction(transaction._id)
-            }}>Изтрий</button>
-            </div>
-        ))}
-        <div className="mb-4">
-            {userInfo?.firstName} {userInfo?.lastName}
-        </div>
+    const {userInfo} = useGetCandidateInfo(id)
+    const {makeTransaction} = useMakeTransaction(id);
+    const {exams} = useGetAllExams(id);
+    const {transactions} = useGetAllTransactions(id)
+    const [popUpActive,setPopUpActive] = useState<number>(0)
+    const { isAdmin } = useIsAdmin();
+   return(<>
+   <NavBar/>
+   <div className = " flex">
+     <SideBar/>
+    {popUpActive == 1 ? 
+        <div><PopUpForm rows = {["Заплатена сума:"]} isDate = {false} isSubmitDocument={false} submitFunc = {makeTransaction} jsonFields = {["sum"]} setButton={setPopUpActive}/></div> 
+        : 
+        popUpActive == 2 
+        ?
+        <ExamsPopUp id={id} setButton={setPopUpActive}/>
+        :
+        <></>
+    }
+     <div className="w-full flex">
         
-    </div>:<></>}
-
-    <div>
-    <input className="border-1 border-black" onChange={(e)=>{
-        setSum(parseInt(e.target.value))
-    }}></input>
-
-    <button onClick = {()=>{
-        makeTransaction(id,sum)
-    }}>Направи плащане</button>
-    </div>
-    
-        <select onChange={(e)=>{
-            setTypeOfExam(e.target.value)
-        }}>
-            <option value="theoretical">теоритичен</option>
-            <option value="practical">практически</option>
-        </select>
-        <select onChange={(e)=>{
-            setExamResult(e.target.value)
-        }}>
-            <option value="yes">да</option>
-            <option value="no">не</option>
-        </select>
-        <button onClick={()=>{
-            signNewExam(id,examResults,typeOfExam)
-        }}>запази изпит</button>
-    </>
-
-    )
+        <ProfileCard info = {userInfo}/>
+        <div className = "relative w-full ml-10 ">
+        {isAdmin ?<div>
+            <div className = "absolute right-[20px] top-[5px] px-2 rounded-lg font-semibold border-black border-2 bg-sky-500" onClick = {()=>{
+            setPopUpActive(1)
+            }}>Добави плащане</div>
+            <div className = "absolute right-[25%] top-[5px] px-2 rounded-lg font-semibold border-black border-2 bg-sky-500" onClick = {()=>{
+            setPopUpActive(2)
+            }}>Добави изпит</div>
+        </div>:<></> }
+        
+        
+        <div className = "mt-16">
+            <TableForProfile
+                title = "Преминали изпити"
+                rows={exams ? exams.map((exam:any) => ({
+                    event: exam.type,
+                    date: exam.date,
+                    result: exam.result,
+                    id:exam.id,
+                })):[]} 
+                isPayments = {false}
+            />
+  
+            <TableForProfile
+            title = "Плащания" 
+            rows={transactions ? transactions.map((transaction:any) => ({
+                event: transaction.sum,
+                date: transaction.date,
+                result: undefined,
+                id:transaction.id
+            })):[]} 
+            isPayments={true}/>
+        </div>
+            
+        </div>
+     </div>
+   </div>   
+   
+   </>)
 }
 export default Profile
