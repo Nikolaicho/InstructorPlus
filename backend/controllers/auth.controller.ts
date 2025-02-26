@@ -48,6 +48,7 @@ const handleRegister = async (req:express.Request,res:express.Response) => {
        return;
     }
        */
+
     const user = new User({
         firstName:firstName,
         surname:surname,
@@ -84,7 +85,7 @@ const handleLogIn = async (req:express.Request,res:express.Response)=>{
             secure: false,   
             
         })
-        res.status(StatusCodes.OK).json({message:"Successfully logged in"})
+        res.status(StatusCodes.OK).json({id:user._id,role:user.role})
     }
     else{
         res.status(StatusCodes.NOT_FOUND).json({message:"No user found"})
@@ -94,11 +95,13 @@ const handleLogIn = async (req:express.Request,res:express.Response)=>{
 const isAdmin = async (req:express.Request,res:express.Response)=>{
     const token = getCookie("access",req,res)
     let payload = jwt.decode(token)
-    console.log(payload)
     
     let response = await User.findById({_id:payload.id})
     if(response && response.role == "admin"){
         res.status(StatusCodes.OK).json({isAdmin:true})
+    }
+    else if(response && response.role == "superAdmin"){
+        res.status(StatusCodes.OK).json({isSuperAdmin:true})
     }
     else{
         res.status(StatusCodes.FORBIDDEN).json({isAdmin:false})

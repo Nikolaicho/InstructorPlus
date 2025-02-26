@@ -114,6 +114,7 @@ async function getAllExams(req:express.Request,res:express.Response){
       }
 
       examObject["date"] = format(exam.date, "dd.MM.yyyy")
+      examObject["id"] = exam._id
       examFormatted.push(examObject)
     })
     res.send(examFormatted)
@@ -140,4 +141,10 @@ async function getProfileId(req:express.Request,res:express.Response){
   res.send({id:id})
 }
 
-export default {getAllExams,signNewExam,makeTransaction,getUserProfileInfo,deleteTransaction,getAllTransactions,getProfileId}
+async function deleteExam(req:express.Request,res:express.Response){
+  
+  await Exam.deleteOne({_id:req.body.id})
+  res.sendStatus(StatusCodes.OK)
+}
+
+export default {getAllExams,signNewExam,makeTransaction,getUserProfileInfo,deleteTransaction,getAllTransactions,getProfileId,deleteExam}

@@ -11,4 +11,5 @@ router.get("/getAllExams",authMiddleware.verifyUserCookie,profileController.getA
 router.get("/getUserProfileInfo",authMiddleware.verifyUserCookie,profileController.getUserProfileInfo)
 router.get("/getAllTransactions",authMiddleware.verifyUserCookie,profileController.getAllTransactions)
 router.get("/getProfileId",authMiddleware.verifyUserCookie,profileController.getProfileId)
+router.post("/deleteExam",authMiddleware.verifyUserCookie,profileController.deleteExam)
 export default router;

@@ -174,12 +174,13 @@ const timeLeft = async(req:express.Request,res:express.Response) => {
 
   res.send({workTimeLeft:fullWorkDay})
 }
+
 const deleteClass = async (req:express.Request,res:express.Response) =>{
   let userId = getIdFromCookie(req,res)
   const {classId} = req.body
   let user = await User.findOne({_id:userId})
   let dates = user.dates;
-  //todo преправи го на филтър
+
   dates.map((date:any,index:number)=>{
     if(date._id.toString() == classId){
       dates.splice(index,1)

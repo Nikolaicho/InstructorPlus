@@ -6,26 +6,25 @@ import { StatusCodes } from "http-status-codes";
 import {getCorporationFromCookie} from "../utils/token.utils"
 import { format } from "date-fns";
 
-const createNewDocument = (req:express.Request,res:express.Response) =>{
+const createNewDocument = async(req:express.Request,res:express.Response) =>{
   const {data} = req.body
   const {documentName,relatedTo,date} = data
   let organization = getCorporationFromCookie(req,res)
-
   if(documentName == undefined || date == undefined || relatedTo == undefined){
     res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидни данни за документ"})
     return;
   }
-
+  
   const newDocument = new Document({
     name:documentName,
     relatedTo:relatedTo,
     date:date,
-    organization:"1233",
+    organization:organization,
   })
 
   newDocument.save()
 
-  res.status(StatusCodes.OK).json({message:"document added successfully"})
+  res.status(StatusCodes.OK)
 }
   
 const getAllDocuments = async (req:express.Request,res:express.Response) => {
@@ -39,39 +38,50 @@ const getAllDocuments = async (req:express.Request,res:express.Response) => {
 
   documents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  documents.map((document:any,index:number)=>{
+  for(let i = 0; i < documents.length ; i++){
     let mark = '';
-    if(document.date.getTime() < oneWeekLater.getTime()){
+    if(documents[i].date.getTime() < oneWeekLater.getTime()){
       mark = "Критично"
     }
-    else if(document.date.getTime() < oneMonthLater.getTime()){
+    else if(documents[i].date.getTime() < oneMonthLater.getTime()){
       mark = "Опасно"
     }
     else{
       mark = "Безопасно"
     }
-    formatedDocuments.push({
-      id:document._id.toString(),
-      name:document.name,
-      date:format(document.date,"dd.MM.yyyy"),
-      relatedTo:document.relatedTo,
-      mark:mark,
-    })
-  })
+    if(documents[i].relatedTo.length > 8){
+      let user = await User.findById({_id:documents[i].relatedTo})
+      formatedDocuments.push({
+        id:documents[i]._id.toString(),
+        name:documents[i].name,
+        date:format(documents[i].date,"dd.MM.yyyy"),
+        relatedTo:`${user.firstName} ${user.lastName}`,
+        mark:mark,
+      })
+    }
+    else{
+      formatedDocuments.push({
+        id:documents[i]._id.toString(),
+        name:documents[i].name,
+        date:format(documents[i].date,"dd.MM.yyyy"),
+        relatedTo:documents[i].relatedTo,
+        mark:mark,
+      })
+    }
+  }
   res.status(StatusCodes.OK).send(formatedDocuments)
 }
 const getAllInstructors = async(req:express.Request,res:express.Response)=>{
-  //TODO направи интерфейс за масива
-  //TODO make getting instructors possible only for your corporation
     const instructorsArray = []
-    const instructors = await User.find({role:"admin"})
+    const organization = getCorporationFromCookie(req,res)
+    const instructors = await User.find({role:"admin",organization:organization})
+
     for(let i = 0; i < instructors.length; i++){
-      instructorsArray.push({id:instructors[i].id,name:instructors[i].email})
+      instructorsArray.push({id:instructors[i].id,firstName:instructors[i].firstName,lastName:instructors[i].lastName})
     }
     res.status(StatusCodes.OK).send(instructorsArray)
 }
 const addCar = async(req:express.Request,res:express.Response) => {
-  //TODO направи колите да се добавят към дадена фирма
   const {data} = req.body
   const {brand,model,registration} = data;
 
@@ -82,7 +92,7 @@ const addCar = async(req:express.Request,res:express.Response) => {
   }
 
   //А, В, Е, К, М, Н, О, Р, С, Т, У, Х,
-  //TODO провери пак дали си взел всички начални префиксове за номерата
+
   let regexNumberPlate = /^(ВН|М|ВР|ЕН|ВТ|Р|Т|РР|СС|ТХ|Н|В|ЕВ|ОВ|СО|С|СА|СВ|РВ|СТ|СН|А|У|Х|К|СМ|Е|КН|РК)\d{4}[АВЕКМНОРСТУХ]{2}$/
   if(!regexNumberPlate.test(registration)){
     res.status(StatusCodes.BAD_REQUEST).json({message:"Невалидна регистрация"})
@@ -98,7 +108,7 @@ const addCar = async(req:express.Request,res:express.Response) => {
       _id:registration,
       brand:brand,
       model:model,
-      orginazation:organization,
+      organization:organization,
     })
   
     car.save()
@@ -108,9 +118,7 @@ const addCar = async(req:express.Request,res:express.Response) => {
   
 const getAllCars = async(req:express.Request,res:express.Response) =>{
   let organization = getCorporationFromCookie(req,res)
-
   const cars = await Car.find({organization});
-
   if(cars.length == 0){
     res.status(StatusCodes.NOT_FOUND).json({message:"Няма намерени автомобили"})
     return;

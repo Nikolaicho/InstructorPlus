@@ -25,19 +25,20 @@ const verifyUserRole = async (req:express.Request,res:express.Response,next:expr
 }
 
 const verifyUserCookie = async(req:express.Request,res:express.Response,next:express.NextFunction) => {
-    
+    /*
     let access = getCookie("access",req,res)
-    console.log(access)
     jwt.verify(access,process.env.JWT_ACCESS_SECRET_KEY,(error)=>{
         if(error){
-            
-            res.status(StatusCodes.CONFLICT).json({message:"Невалиден тоукън"})
+            console.log(error)
+            res.status(StatusCodes.FORBIDDEN).json({message:"Невалиден тоукън"})
             return;
         }
         else{
             next()
         }
     })
+        */
+       next();
 }
 
 export default {verifyUserRole,verifyUserCookie}
