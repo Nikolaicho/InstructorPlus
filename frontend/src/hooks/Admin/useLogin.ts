@@ -1,23 +1,28 @@
 import React from "react";
 import { useState } from "react";
 
-const useLogIn = () => {
-    const [email,setEmail] = useState("")
-    const [password,setPassword] = useState("")
+interface UserInfo {
+  role: string;
+  id: string;
+}
 
-    const logIn = async () =>{
+const useLogIn = () => {
+    const logIn = async (data:any) =>{
         const response = await fetch("http://localhost:8000/logIn ", {
             method: "POST",
             body: JSON.stringify({
-              email: email,
-              password: password,
+              data:data
             }),
             headers: {
               "Content-Type": "application/json",
             },
             credentials: "include",
         });
+        const result:UserInfo = await response.json()
+        return result
     }
-    return {setEmail,setPassword,logIn}
+    return {logIn}
 }
 export default useLogIn
+
+

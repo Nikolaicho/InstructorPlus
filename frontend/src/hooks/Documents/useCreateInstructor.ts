@@ -1,9 +1,9 @@
 const useCreateInstructor = () =>{
-    const createInstructor = (id:string) =>{
+    const createInstructor = (data:any) =>{
         fetch("http://localhost:8000/createInstructor",{
             method:"POST",
             body:JSON.stringify({
-                id:id
+                data:data
             }),
             headers:{
                 "Content-Type":"application/json"

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 const useTodayClasses = () => {
     
     const getClasses = async (date:Date) =>{
-        let result = fetch("http://localhost:8000/getAllClasses",{
+        let result = await fetch("http://localhost:8000/getAllClasses",{
             method:"POST",
             body:JSON.stringify({
                 searchedDate:date
@@ -14,8 +14,7 @@ const useTodayClasses = () => {
               },
             credentials:"include"
         })
-        return (await result).json()
-       
+        return await result.json()
     }
     return {getClasses}
 }

@@ -18,6 +18,6 @@ const  useGetAllRequests = () => {
     useEffect(()=>{
         getAllRequests()
     },[])
-    return {requests}
+    return {requests,setRequests}
 }
 export default useGetAllRequests

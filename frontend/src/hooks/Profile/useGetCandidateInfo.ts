@@ -4,7 +4,6 @@ import { profileInfo } from "../../interfaces/profile.interface"
 function useGetCandidateInfo(id:string|undefined){
     const [userInfo,setUserInfo] = useState<profileInfo>()
     const [transactions,setTransactions] = useState<any>()
-    const [isLoaded,setIsLoaded] = useState<boolean>()
 
     let params:URLSearchParams;
         if(id !=undefined){
@@ -22,12 +21,11 @@ function useGetCandidateInfo(id:string|undefined){
         })
         
         setUserInfo(await(response.json()))
-        setIsLoaded(true)
     }
 
     useEffect(()=>{
         getInfo()
-    })
-    return {userInfo,isLoaded}
+    },[])
+    return {userInfo}
 }
 export default useGetCandidateInfo

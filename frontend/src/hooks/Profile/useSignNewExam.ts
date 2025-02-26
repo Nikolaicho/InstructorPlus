@@ -1,11 +1,12 @@
-const useSignNewExam = () => {
-    const signNewExam = (id:string|undefined,result:string,type:string) =>{
+const useSignNewExam = (id:string|undefined) => {
+    const signNewExam = (result:string,type:string,date:string) =>{
         fetch("http://localhost:8000/signNewExam",{
             method:"POST",
             body:JSON.stringify({
                 id:id,
                 result:result,
-                type:type
+                type:type,
+                date:date,
             }),
             headers:{
                 "Content-Type":"application/json"

@@ -1,6 +1,6 @@
-const useMakeTransaction = () =>{
-    const makeTransaction = (id:string|undefined,sum:number) =>{
-        console.log(id)
+const useMakeTransaction = (id:string|undefined) =>{
+    const makeTransaction = (data:any) =>{
+        
         fetch("http://localhost:8000/makeTransaction",{
             method:"POST",
             headers:{
@@ -8,7 +8,7 @@ const useMakeTransaction = () =>{
             },
             body:JSON.stringify({
                 id:id,
-                sum:sum
+                data:data
             }),
             credentials:"include"
         })

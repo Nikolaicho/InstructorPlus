@@ -1,0 +1,21 @@
+
+  
+.line {
+  background-color: black;
+  height: 1.25px;  /* Line height */
+  width:0px; 
+  transition: 0.75s ease; /* Transition smoothly */
+}
+
+.selectable:hover ~ .line {
+  width: 100%;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  
+}
+  
+
+

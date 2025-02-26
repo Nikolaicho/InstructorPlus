@@ -1,13 +1,10 @@
 const useCreateCorporation = () => {
-    const createCorporation = (id:string,adress:string,telephone:string,name:string) => {
+    const createCorporation = (data:any) => {
         fetch("http://localhost:8000/createCorporation",{
             method:"POST",
 
             body:JSON.stringify({
-                identityNumber:id,
-                adress:adress,
-                telephone:telephone,
-                name:name
+                data:data
             }),
             headers:{
                 "Content-Type":"application/json"
