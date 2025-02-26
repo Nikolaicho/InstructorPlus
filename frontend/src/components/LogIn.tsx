@@ -1,27 +1,15 @@
-import { Button, Input } from "@nextui-org/react";
 import useLogIn from "../hooks/Admin/useLogin";
-import NavBar from "./NavBar";
+import Form from "../components/Form"
+
 function LogIn() {
-  const { setEmail, setPassword, logIn } = useLogIn();
-  return (
-    <>
-      <NavBar />
-      <h1>Log In</h1>
-      <Input
-        onChange={(e) => {
-          setEmail(e.target.value);
-        }}
-      ></Input>
-      <Input
-        onChange={(e) => {
-          setPassword(e.target.value);
-        }}
-      ></Input>
-      <Button onClick={logIn} color="primary">
-        Button
-      </Button>
-    </>
-  );
+  
+  const { logIn } = useLogIn();
+  
+ return(
+  <>
+  <Form title = "Влез" inputs={["Имейл","Парола"]} submitFunc={logIn} jsonFields = {["email","password"]} destination = "/logIn" />
+  </>
+ )
 }
 
 export default LogIn;

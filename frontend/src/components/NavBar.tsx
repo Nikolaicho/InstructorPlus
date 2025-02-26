@@ -1,71 +1,38 @@
 import { useNavigate } from "react-router-dom";
-import useGetNumberOfNotifications from "../hooks/NavBar/useGetNumberOfNotifications";
+import LogoutIcon from '@mui/icons-material/Logout';
+import "../css/notifications.css"
+import PersonIcon from '@mui/icons-material/Person';
+import useLogOut from "../hooks/NavBar/useLogOut";
+import Cookies from 'js-cookie';
+import useGetProfileId from "../hooks/NavBar/useGetProfileId"; 
 
+/*
+<Notifications sx={{ color: '#9c9a9a' }}onClick={()=>{
+          setIsNotificationsOpen(!isNotificationsOpen)
+        }}fontSize="large"/>
+        {isNotificationsOpen ? 
+        <NotificationsComponent/>
+        : <></>}
+*/
 function NavBar() {
   const navigate = useNavigate();
-  const {number} = useGetNumberOfNotifications()
+  const {logOut} = useLogOut();
+  const {redirectToProfilePage} = useGetProfileId()
   return (
     <>
-      <div className="text-bold  flex  bg-sky-500">
-        <div
-          className="cursor-pointer p-2 h-full hover:bg-white"
-          onClick={() => {
-            navigate("/logIn");
-          }}
-        >
-          Влез
-        </div>
-        <div
-          className="cursor-pointer p-2 h-full hover:bg-white"
-          onClick={() => {
-            navigate("/");
-          }}
-        >
-          Регистрирай
-        </div>
-        <div
-          className="cursor-pointer p-2 h-full hover:bg-white"
-          onClick={() => {
-            navigate("/admin");
-          }}
-        >
-          Часове
-        </div>
-        <div
-          className="cursor-pointer p-2 h-full hover:bg-white"
-          onClick={() => {
-            navigate("/documents");
-          }}
-        >
-          Документи
-        </div>
-        <div
-          className="cursor-pointer p-2 h-full hover:bg-white"
-          onClick={() => {
-            navigate("/notifications");
-          }}
-        >
-          Известия {number}
-        </div>
-        <div className = "cursor-pointer p-2 h-full hover:bg-white"
-            onClick={() =>{
-              navigate("/profile")
-            }}>
-            профил
-        </div>
-        <div className = "cursor-pointer p-2 h-full hover:bg-white"
-            onClick={() =>{
-              navigate("/registry")
-            }}>
-            регистър
-        </div>
-        <div className = "cursor-pointer p-2 h-full hover:bg-white"
-            onClick={() =>{
-              navigate("/createCorporation")
-            }}>
-            създай фирма
-        </div>
+    <div className="bg-blue-900  flex justify-between h-[30px] items-center">
+      <div className = "text-white text-xl ml-6 cursor-pointer">InstructorPlus</div>
+      <div className = "text-white">{Cookies.get("corp")}</div>
+      <div>
+        <PersonIcon sx={{ color: 'white', marginRight:"15px"}} onClick = {()=>{
+          redirectToProfilePage()
+        }}/>
+        <LogoutIcon sx={{ color: 'white' ,marginRight:"15px"}} onClick={()=>{
+          logOut()
+          navigate("/logIn")
+        }}/>
       </div>
+    </div>
     </>
   );
 }
