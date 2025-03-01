@@ -1,73 +1,109 @@
+"use client";
+
+import type React from "react";
+
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import useGetAllInstructors from "../hooks/Documents/useGetAllInstructors";
 import useGetAllCars from "../hooks/Documents/useGetAllCars";
-import CloseIcon from '@mui/icons-material/Close';
-import { button } from "@nextui-org/react";
-import { useState } from "react";
 
 interface FormDocumentsProps {
-    type:string 
-    submitFunc: (data:any) => void;
-    jsonFields: Array<string>,
-    setButton: React.Dispatch<React.SetStateAction<number>>;
+  type: string;
+  submitFunc: (data: any) => void;
+  jsonFields: Array<string>;
+  setButton: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const PopUpDelete: React.FC<FormDocumentsProps> = ({type,submitFunc,jsonFields,setButton}) => {
-    const {instructors} = useGetAllInstructors()
-    const {cars} = useGetAllCars()
-    const [formData,setFormData] = useState<any>({})
+const PopUpDelete: React.FC<FormDocumentsProps> = ({
+  type,
+  submitFunc,
+  jsonFields,
+  setButton,
+}) => {
+  const { instructors } = useGetAllInstructors();
+  const { cars } = useGetAllCars();
+  const [formData, setFormData] = useState<any>({});
 
-    const handleChange = (field: string, value: string) => {
-        const updatedData = formData;
-        updatedData[field] = value; 
-        setFormData(updatedData);
-      };
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  };
 
-    return(<>
-    <div className =  "absolute w-[600px] py-6 bg-gray-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl z-50">
-        <div className = "absolute right-[0] top-[0]">
-            <CloseIcon style={{cursor:"pointer"}}onClick = {()=>{
-                setButton(0)
-            }}/>
-        </div>
-
-        <form onSubmit={
-        (e)=>{
-        e.preventDefault()
-        submitFunc(formData)
-        
-      }}></form>
-        {type == "car"?
-        <>
-            <div className = "text-center mb-4 font-bold">Премахни кола</div>
-            <div className="flex justify-center">
-                <div className="w-[30%] text-center">Номер на колата</div>
-                
-                <select className="h-[30px] w-[50%] text-center border border-gray-300 rounded-md px-2 ml-[auto] mr-[auto] " onChange={(e)=>{handleChange("register",e.target.value)}}>
-                
-                    {cars?.map((car:any)=>(
-                        <option value={car._id}>{car._id}</option>
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative"
+        >
+          <button
+            onClick={() => setButton(0)}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <X size={24} />
+          </button>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            {type === "car" ? "Премахни кола" : "Премахни инструктор"}
+          </h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitFunc(formData);
+            }}
+          >
+            <div className="mb-4">
+              <label
+                htmlFor="selectItem"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                {type === "car" ? "Номер на колата" : "Име на инструктор"}
+              </label>
+              <select
+                id="selectItem"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) =>
+                  handleChange(
+                    type === "car" ? "register" : "id",
+                    e.target.value
+                  )
+                }
+              >
+                <option value="">
+                  Избери {type === "car" ? "Кола" : "Инструктор"}
+                </option>
+                {type === "car"
+                  ? cars?.map((car: any) => (
+                      <option key={car._id} value={car._id}>
+                        {car._id}
+                      </option>
+                    ))
+                  : instructors?.map((instructor: any) => (
+                      <option key={instructor.id} value={instructor.id}>
+                        {instructor.firstName} {instructor.lastName}
+                      </option>
                     ))}
-                </select>
+              </select>
             </div>
-        </>
-        :
-        <div>
-            <div className = "text-center mb-4 font-bold">Премахни инструктор</div>
-            <div className="flex justify-center">
-                <div className="w-[30%] text-center">Име на инструктор:</div>
-                <select className="h-[30px] w-[50%] flex-1 border border-gray-300 rounded-md px-2 ">
-                    <option>Изберете инструктор</option>
-                    {instructors?.map((instructor:any)=>(
-                        <option value={instructor.id} >{instructor.firstName} {instructor.lastName}</option>
-                    ))}
-                </select>
-            </div>
-        </div>}
-        <div className = "flex justify-center font-bold">
-                    <button type = "submit" className="w-[50%] h-[40px] bg-sky-500  mt-4 flex justify-center items-center rounded-xl border-2 border-black">Запиши</button>
-                </div>
-    </div>
-    </>)
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-md hover:bg-red-700 transition-colors duration-300"
+            >
+              Изтрий
+            </motion.button>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
-}
-export default PopUpDelete
+export default PopUpDelete;

@@ -1,226 +1,274 @@
-import {useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Calendar } from "@nextui-org/react";
+import { parseDate } from "@internationalized/date";
+import { TimeInput } from "@heroui/react";
+import { Plus, X, Search, CalendarIcon } from "lucide-react";
 import NavBar from "./NavBar";
+import SideBar from "./SideBar";
 import useIsAdmin from "../hooks/Admin/useIsAdmin";
-import { Calendar} from "@nextui-org/react";
 import useClass from "../hooks/Admin/useClass";
 import useTodayDate from "../hooks/Admin/useTodayDate";
-import { parseDate } from "@internationalized/date";
 import useTodayClasses from "../hooks/Admin/useTodayClasses";
 import useSearchCandidate from "../hooks/Admin/useSearchCandidates";
-import { Candidate } from "../interfaces/candidate.interface";
-import useGetTimeLeft from "../hooks/Admin/useGetTimeLeft"; 
-import SideBar from "./SideBar";
-import DeleteIcon from '@mui/icons-material/Delete';
+import useGetTimeLeft from "../hooks/Admin/useGetTimeLeft";
 import useDeleteClass from "../hooks/Admin/useDeleteClass";
-import {TimeInput} from "@heroui/react";
+import type { Candidate } from "../interfaces/candidate.interface";
 
 function Admin() {
   const { isAdmin } = useIsAdmin();
-  
-  //дава селектираната дата и функция за записване на час
   const { setSelectedDate, selectedDate, signNewClass } = useClass();
-
-  //iso формат за да може да се слага дефоут днешна дата на календара
   const dateString = useTodayDate();
-
-  //импорт за функциите които следят останалото работно време
-  const {getTimeLeft,workingTime} = useGetTimeLeft();
-
-  //стейт за търсачка
-  const [name,setName] = useState("")
-
-  //стейт за името на избрания за час курсист
-  const [candidate,setCandidate] = useState("");
-
-  //импортва функцията,която търси кандидатите, самите кандидати и дали е заредило
-  const {searchCandidates,candidates} = useSearchCandidate()
-
-  //показва панела за записване на час
-  const [isSearchVisible,setIsSearchVisible] = useState(false)
-
-  //показва дали бутона за 100 минути или 50 минути е активен
-  const [fiftyMinutesActive,setFiftyMinutesActive] = useState<number>(2)
-
-  //време за часа
-  const [hours,setHours] = useState<number|undefined>(0)
-  const [minutes,setMinutes] = useState<number|undefined>(0)
-
-  //стейт за часовете
-  const [classes,setClasses] = useState<any>()
-
-  //намира всички часове за определена дата
+  const { getTimeLeft, workingTime } = useGetTimeLeft();
+  const [name, setName] = useState("");
+  const [candidate, setCandidate] = useState("");
+  const { searchCandidates, candidates } = useSearchCandidate();
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [fiftyMinutesActive, setFiftyMinutesActive] = useState<number>(2);
+  const [hours, setHours] = useState<number | undefined>(0);
+  const [minutes, setMinutes] = useState<number | undefined>(0);
+  const [classes, setClasses] = useState<any>();
   const { getClasses } = useTodayClasses();
+  const { deleteClass } = useDeleteClass();
+  const [createdClasses, setCreatedClasses] = useState<number>(0);
 
-  //изтрива часовете
-  const {deleteClass} = useDeleteClass();
-
-  const [createdClasses,setCreatedClasses] = useState<number>(0)
-  
-  const [screenWidth,setScreenWidth] = useState(window.innerWidth);
-
-  useEffect(()=>{
-    async function awaitFunction() {
-      setClasses(await getClasses(new Date(dateString))) 
+  useEffect(() => {
+    async function fetchClasses() {
+      setClasses(await getClasses(new Date(dateString)));
     }
-    awaitFunction()
-  },[])
+    fetchClasses();
+    getTimeLeft(dateString);
+  }, []);
 
-  useEffect(()=>{
-    async function awaitFunction() {
-      const delay = (ms:number) => new Promise(resolve => setTimeout(resolve, ms));
-      await delay(1000)
-      setClasses(await getClasses(selectedDate)) 
+  useEffect(() => {
+    async function fetchClasses() {
+      const delay = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+      await delay(1000);
+      setClasses(await getClasses(selectedDate));
     }
-    awaitFunction()
-  },[createdClasses])
+    fetchClasses();
+  }, []);
 
-  useEffect(()=>{
-    // дава оставащото работно време на днешния ден
-    // (когато заредиш за първи път страницата показваше 0 и трябваше да цъкнеш на дата от календара за да се оправи)
-    getTimeLeft(dateString)
-  },[])
+  if (!isAdmin) return null;
 
-  return(<>
-  { isAdmin ? <div>
-    <NavBar/>
-    
-  <div className="flex">
-    <SideBar/>
-    <div className = "mt-10 ml-10 flex w-full justify-around">
-      <div className = "scale-[1.5] h-[0px] absolute left-[0px] ml-4 bg-black relative left-[0]">
-        <Calendar   
-        style={{ transformOrigin: 'top left' }} 
-        aria-label="Date (Controlled)"
-        defaultValue={parseDate(dateString)}
-        minValue={parseDate(dateString)}
-        onChange={(e) => {
-          let date = new Date(e.year, e.month-1, e.day, 0);
-          setSelectedDate(date);
-          getTimeLeft(date.getTime().toString());
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <NavBar />
+      <div className="flex">
+        <SideBar />
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6">
+              Админ Панел
+            </h1>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Calendar */}
+              <div className="bg-white rounded-xl shadow-md p-6">
+                <h2 className="text-xl font-semibold mb-4 flex items-center">
+                  <CalendarIcon className="mr-2" /> Календар
+                </h2>
+                <Calendar
+                  className="max-w-full"
+                  aria-label="Date (Controlled)"
+                  defaultValue={parseDate(dateString)}
+                  minValue={parseDate(dateString)}
+                  onChange={(e) => {
+                    const date = new Date(e.year, e.month - 1, e.day);
+                    setSelectedDate(date);
+                    getTimeLeft(date.getTime().toString());
+                    getClasses(date).then(setClasses);
+                  }}
+                />
+              </div>
 
-          async function awaitFunction(){
-            setClasses(await getClasses(date))
-          } 
-          awaitFunction()
-        }}
-        />
-      </div>
-      
-
-      <div className = "w-[30%] h-[50vh] bg-gray-300 font-bold scale-[1] rounded-lg border-2 border-black">
-
-        <div className = " text-center flex items-center border-b border-black ">
-          
-          <div className = "text-2xl mx-auto text-center">{
-          selectedDate.toLocaleDateString('bg-BG',{ day: 'numeric', month: 'long' })}</div> 
-          <div className = "text-sm mt-2 ">{workingTime}</div>
-        </div>
-
-        {classes ? classes.map((classItem:any,index:number)=>(
-          <div className = "bg-sky-600 w-full items-center h-[50px] border-b border-black flex">
-            <div className = "ml-2">{classItem.firstName} {classItem.lastName}</div>
-            <div className = "ml-6">{classItem.start}-{classItem.end}</div>
-            <DeleteIcon onClick={()=>{
-              const temp = [...classes]
-              temp.splice(index,1)
-              setClasses(temp)
-              deleteClass(classItem.class_id)
-            }} sx={{marginLeft:"auto"}}/>
-          </div>
-        )) :<></>}
-        
-
-        <div className = "bg-green-500 w-full  h-[50px] border-b border-black flex justify-center items-center">
-          <div
-          onClick={()=>{
-            setIsSearchVisible((prev) => {
-            const newValue = !prev;
-            return newValue;
-          })
-          }}>
-          Създай нов час
-          </div>
-        </div>
-      </div>
-    </div>
-    <div className =  {isSearchVisible ? "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-400 w-[600px] h-[600px] rounded-lg border-black border-2" : "hidden"}>
-      <div></div>
-      <div>
-        <div className = "mt-2 flex justify-around items-center">
-          <input className = "w-[50%] h-[30px] rounded-sm" placeholder = "Потърси кандидат" 
-          onChange={(e)=>{
-            setName(e.target.value)
-          }}/>
-
-        <div className = "bg-sky-500 rounded-lg w-[25%] text-center h-[30px] border-black border-2 font-semibold" 
-          onClick = {()=>{
-            searchCandidates(name)}}
-          >Търси</div>
-      
-        </div>
-
-        <div className = "mt-4 ml-4 flex justify-around items-center">
-
-          <div className = "w-[150px] border-black border-2 rounded-xl">
-            <TimeInput label="Event Time" onChange = {(e)=>{
-              setHours(e?.hour)
-              setMinutes(e?.minute)
-            }}/>
-          </div>
-
-          <div className = "flex">
-            <div className = {fiftyMinutesActive == 1 ? "border-black border-2 rounded-xl bg-sky px-4 h-[40px] flex items-center mr-4 bg-sky-500" :"border-black border-2 rounded-xl bg-sky px-4 h-[40px] flex items-center mr-4 bg-white"} 
-            onClick = {()=>{
-              setFiftyMinutesActive(1)
-            }}>50 мин</div>
-            <div className = {fiftyMinutesActive == 0 ? "border-black border-2 rounded-xl bg-sky px-4 h-[40px] flex items-center mr-4 bg-sky-500" :"border-black border-2 rounded-xl bg-sky px-4 h-[40px] flex items-center mr-4 bg-white"} 
-            onClick = {()=>{
-              setFiftyMinutesActive(0)
-            }}>100 мин</div>
-          </div>
-        
-          <div className = "border-black border-2 rounded-xl bg-sky px-4 h-[40px] flex items-center mr-4 bg-sky-500 font-semibold" 
-          onClick = {()=>{
-            let longHour ; 
-            {fiftyMinutesActive ? longHour = "50": longHour = "100"}
-            signNewClass(
-              candidate,
-              selectedDate, 
-              hours,
-              minutes,
-              longHour
-            );
-            setCreatedClasses(createdClasses+1)
-          }}>
-            Запиши</div>
-        </div>
-
-        <div>
-          {candidates?.map((candidate:Candidate,key:number)=>(
-            <div>
-              {candidates ? 
-                <div className = "flex justify-around my-2">
-                  <div>{candidate.firstName} {candidate.surname} {candidate.lastName}</div>
-                  <div className = "border-black border-2 bg-sky-500 px-4 font-semibold" 
-                  onClick={()=>{
-                    
-                    setCandidate(candidate._id)
-                  }}>Избери</div>
-                </div> 
-              : 
-              <></>}
+              {/* Classes List */}
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">
+                    {selectedDate.toLocaleDateString("bg-BG", {
+                      day: "numeric",
+                      month: "long",
+                    })}
+                  </h2>
+                  <span className="text-sm bg-white/20 px-2 py-1 rounded-full">
+                    {workingTime}
+                  </span>
+                </div>
+                <div className="divide-y divide-gray-200">
+                  {classes && classes.length > 0 ? (
+                    classes.map((classItem: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-4 hover:bg-gray-50"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {classItem.firstName} {classItem.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {classItem.start} - {classItem.end}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const temp = classes.filter(
+                              (_: any, i: number) => i !== index
+                            );
+                            setClasses(temp);
+                            deleteClass(classItem.class_id);
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center py-4 text-gray-500">
+                      Няма часове за този ден
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsSearchVisible(true)}
+                  className="w-full p-4 bg-green-500 text-white font-medium hover:bg-green-600 transition-colors flex items-center justify-center"
+                >
+                  <Plus className="mr-2" /> Създай нов час
+                </button>
+              </div>
             </div>
-          ))}             
-        </div>
-
+          </div>
+        </main>
       </div>
+
+      {/* New Class Modal */}
+      {isSearchVisible && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Създай нов час</h3>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="search-candidate"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Потърси кандидат
+                  </label>
+                  <div className="flex">
+                    <input
+                      id="search-candidate"
+                      className="flex-1 p-2 border rounded-l-md focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="Име на кандидат"
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                    <button
+                      onClick={() => searchCandidates(name)}
+                      className="bg-indigo-600 text-white px-4 rounded-r-md hover:bg-indigo-700"
+                    >
+                      <Search className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Време на часа
+                  </label>
+                  <TimeInput
+                    onChange={(e) => {
+                      setHours(e?.hour);
+                      setMinutes(e?.minute);
+                    }}
+                    className="w-full p-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Продължителност
+                  </label>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setFiftyMinutesActive(1)}
+                      className={`flex-1 py-2 px-4 rounded-md ${
+                        fiftyMinutesActive === 1
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}
+                    >
+                      50 мин
+                    </button>
+                    <button
+                      onClick={() => setFiftyMinutesActive(0)}
+                      className={`flex-1 py-2 px-4 rounded-md ${
+                        fiftyMinutesActive === 0
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                      }`}
+                    >
+                      100 мин
+                    </button>
+                  </div>
+                </div>
+
+                {candidates && candidates.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Избери кандидат
+                    </label>
+                    <div className="max-h-40 overflow-y-auto border rounded-md">
+                      {candidates.map((c: Candidate) => (
+                        <button
+                          key={c._id}
+                          onClick={() => setCandidate(c._id)}
+                          className={`w-full text-left p-2 hover:bg-gray-100 ${
+                            candidate === c._id ? "bg-indigo-100" : ""
+                          }`}
+                        >
+                          {c.firstName} {c.surname} {c.lastName}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button
+                type="button"
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={() => {
+                  const longHour = fiftyMinutesActive ? "50" : "100";
+                  signNewClass(
+                    candidate,
+                    selectedDate,
+                    hours,
+                    minutes,
+                    longHour
+                  );
+                  setCreatedClasses((prev) => prev + 1);
+                  setIsSearchVisible(false);
+                  window.location.reload();
+                }}
+              >
+                Запиши
+              </button>
+              <button
+                type="button"
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                onClick={() => setIsSearchVisible(false)}
+              >
+                Отказ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  </div></div>:<></>}
-  </>)
+  );
 }
 
 export default Admin;
-
-/*
-
-*/

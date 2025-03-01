@@ -8,8 +8,9 @@ import { motion } from "framer-motion";
 interface FormProps {
   title: string;
   inputs: Array<any>;
-  submitFunc: (data: any) => Promise<UserInfo>;
+  submitFunc: (data: any) => void;
   jsonFields: Array<string>;
+  destination: string;
 }
 
 interface UserInfo {
@@ -22,6 +23,7 @@ const Form: React.FC<FormProps> = ({
   inputs,
   submitFunc,
   jsonFields,
+  destination,
 }) => {
   const [formData, setFormData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,27 +39,8 @@ const Form: React.FC<FormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const userInfo = await submitFunc(formData);
-
-      // Add a small delay for animation
-      setTimeout(() => {
-        if (userInfo.role === "user") {
-          navigate("/classes/" + userInfo.id);
-        } else if (userInfo.role === "admin") {
-          navigate("/assignClasses");
-        } else if (userInfo.role === "superAdmin") {
-          navigate("/documents");
-        } else {
-          navigate("/logIn");
-        }
-      }, 500);
-    } catch (error) {
-      console.error("Submission error:", error);
-      setIsSubmitting(false);
-    }
+    submitFunc(formData);
+    navigate(destination);
   };
 
   return (
@@ -179,10 +162,10 @@ const Form: React.FC<FormProps> = ({
                   <div
                     className="text-center mt-[4px] te text-gray-300"
                     onClick={() => {
-                      navigate("/register");
+                      navigate("/logIn");
                     }}
                   >
-                    Нямате акаунт? Цъкнете тук
+                    Имате акаунт? Цъкнете тук
                   </div>
                 </motion.div>
               </div>

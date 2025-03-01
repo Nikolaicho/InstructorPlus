@@ -1,70 +1,138 @@
+import type React from "react";
+
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, CheckCircle, XCircle, Calendar } from "lucide-react";
+import {
+  Button,
+  Input,
+  RadioGroup,
+  Radio,
+  SelectItem,
+  Select,
+} from "@nextui-org/react";
 import useSignNewExam from "../hooks/Profile/useSignNewExam";
-import CloseIcon from '@mui/icons-material/Close';
 
-interface ExamsPopUpProps{
-    id:string|undefined
-    setButton: React.Dispatch<React.SetStateAction<number>>;
+interface ExamsPopUpProps {
+  id: string | undefined;
+  setButton: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const ExamsPopUp:React.FC<ExamsPopUpProps> = ({id,setButton}) => {
-    const {signNewExam} = useSignNewExam(id);
-    const [date,setDate] = useState<string>("")
-    const [type,setType] = useState<string>("theoretical")
-    const [result,setResult] = useState<string>("yes")
-    const [dateError,setDateError] = useState<boolean>(false)
-    
-    return(<>
-    
-     <div className =  "absolute w-[600px] py-6 bg-gray-400 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-xl z-50">
-        <div className = "absolute right-[0] top-[0]">
-            <CloseIcon onClick = {()=>{
-                setButton(0)
-            }}/>
-        </div>
-        <form onSubmit = {(e) =>{
-            e.preventDefault()
-            if(date == ""){
-                setDateError(true)
-            }
-            else{
-                signNewExam(result,type,date)
-            }
-            
-        } }>
-            <div className="flex items-center font-bold px-4 my-2">
-                <div className="w-[100px]">Тип изпит:</div>
-                <select className="h-[30px] flex-1 border border-gray-300 rounded-md px-2 ml-10" onChange={(e)=>{setType(e.target.value)}} >
-                    <option value="theoretical">Теоретичен</option>
-                    <option value="practical">Практичен</option>
-                </select>
+const ExamsPopUp: React.FC<ExamsPopUpProps> = ({ id, setButton }) => {
+  const { signNewExam } = useSignNewExam(id);
+  const [date, setDate] = useState<string>("");
+  const [type, setType] = useState<string>("theoretical");
+  const [result, setResult] = useState<string>("yes");
+  const [dateError, setDateError] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (date === "") {
+      setDateError(true);
+      return;
+    }
+    setIsSubmitting(true);
+    await signNewExam(result, type, date);
+    setIsSubmitting(false);
+    setButton(0);
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
+  };
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", damping: 15 }}
+          className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+        >
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white relative">
+            <h2 className="text-2xl font-bold">Въведи изпит</h2>
+            <Button
+              isIconOnly
+              color="default"
+              variant="light"
+              onPress={() => setButton(0)}
+              className="absolute top-4 right-4"
+            >
+              <X size={24} />
+            </Button>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div>
+              <Select
+                label="Тип"
+                placeholder="Select exam type"
+                selectedKeys={[type]}
+                onChange={(e) => setType(e.target.value)}
+              >
+                <SelectItem key="theoretical" value="theoretical">
+                  Теоретичен
+                </SelectItem>
+                <SelectItem key="practical" value="practical">
+                  Практически
+                </SelectItem>
+              </Select>
             </div>
-            <div className="flex items-center font-bold px-4 my-2">
-                <div className="w-[100px]">Резултат:</div>
-                <select className="h-[30px] flex-1 border border-gray-300 rounded-md px-2 ml-10" onChange={(e)=>{setResult(e.target.value)}} >
-                    <option value="yes">Да</option>
-                    <option value="no">Не</option>
-                </select>
-            </div>
-            <div className="flex items-center font-bold px-4 my-2">
-                <div className="w-[100px]">Дата:</div>
-                <div className = "flex-col w-full">
-                    <input type = "date" className = {dateError ?"h-[40px] border-2 border-red-600 w-full border border-gray-300 rounded-lg px-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    :"h-[40px] w-full border border-gray-300 rounded-lg px-4 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"}
-                    onChange={(e)=>
-                        { 
-                            setDateError(false);
-                            setDate(e.target.value)
-                        }}/>
-                    {dateError?<div className = "text-[10px] text-red-600 ">Въведете валидна дата</div>:<></>}
+            <RadioGroup
+              label="Резултат"
+              orientation="horizontal"
+              value={result}
+              onValueChange={setResult}
+              className="flex justify-around"
+            >
+              <Radio value="yes" color="success">
+                <div className="flex items-center">
+                  <CheckCircle className="mr-2 text-green-500" size={18} />
+                  ДА
                 </div>
+              </Radio>
+              <Radio value="no" color="danger">
+                <div className="flex items-center">
+                  <XCircle className="mr-2 text-red-500" size={18} />
+                  НЕ
+                </div>
+              </Radio>
+            </RadioGroup>
+            <div>
+              <Input
+                type="date"
+                label="Дата"
+                placeholder="Select date"
+                isInvalid={dateError}
+                errorMessage={dateError ? "Въведете валидна дата" : ""}
+                onChange={(e) => {
+                  setDateError(false);
+                  setDate(e.target.value);
+                }}
+                startContent={
+                  <Calendar className="text-default-400" size={18} />
+                }
+              />
             </div>
+            <Button
+              type="submit"
+              color="primary"
+              className="w-full"
+              isLoading={isSubmitting}
+            >
+              {isSubmitting ? "Обработва се" : "Запиши"}
+            </Button>
+          </form>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
-            <div className = "flex justify-center font-bold">
-                <button type = "submit" className="w-[50%] h-[40px] bg-sky-500  mt-4 flex justify-center items-center rounded-xl border-2 border-black">Запиши</button>
-            </div>
-        </form>
-    </div> 
-    </>)
-}
-export default ExamsPopUp
+export default ExamsPopUp;
